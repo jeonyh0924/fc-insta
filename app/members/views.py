@@ -35,3 +35,12 @@ class UserModelViewAPI(viewsets.ModelViewSet):
             'token': token.key,
         }
         return Response(data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['delete'])
+    def logout(self, request):
+        user = request.user
+        if user.auth_token:
+            user.auth_token.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
