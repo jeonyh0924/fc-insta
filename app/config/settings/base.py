@@ -25,6 +25,8 @@ environ.Env.read_env(env_file=env_file)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'qf+nlttg&c3e2j=dh8afwvbs^d%or6l)l#4y#!zgakymin_wwm'
 
+AUTH_USER_MODEL = 'members.User'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -33,12 +35,18 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'members',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'rest_framework',
+    'django_extensions',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [

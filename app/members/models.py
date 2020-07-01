@@ -4,6 +4,8 @@ from django.db import models
 
 # Create your models here.
 class User(AbstractUser):
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
     email = models.EmailField(unique=True, )
     relation_users = models.ManyToManyField(
         'self',
@@ -33,4 +35,5 @@ class Relations(models.Model):
     )
     related_type = models.CharField(
         choices=CHOICE_RELATIONS_TYPE,
+        max_length=10,
     )
