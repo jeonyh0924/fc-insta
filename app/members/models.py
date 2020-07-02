@@ -48,7 +48,7 @@ class User(AbstractBaseUser):
         'self',
         through='Relations',
         # relations_users에 대한 역방향 참조에 대해서 거부한다.
-        related_name='+',
+        # related_name='+',
     )
 
     objects = MyUserManager()
