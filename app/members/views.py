@@ -1,20 +1,23 @@
 from django.contrib.auth import get_user_model, authenticate
-from django.shortcuts import render
-
 # Create your views here.
 from rest_framework import viewsets, status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from members.serializers import UserSerializers
+from members.models import Relations
+from members.serializers import UserSerializers, RelationSerializers
 
 User = get_user_model()
 
 
 class UserModelViewAPI(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializers
+
+    def get_serializer_class(self):
+        if self.action == 'makeFollow':
+            return RelationSerializers
+        return super().get_serializer_class()
 
     @action(detail=False, methods=['post'])
     def login(self, request):
@@ -45,3 +48,48 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False)
+    def follow(self, request):
+        users = request.user.follow
+        serializer = UserSerializers(users, many=True, )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False)
+    def follower(self, request):
+        users = request.user.follower
+        serializers = UserSerializers(users, many=True, )
+        return Response(serializers.data, status=status.HTTP_200_OK)
+
+    @action(detail=False)
+    def block(self, request):
+        users = request.user.block
+        serializers = UserSerializers(users, many=True, )
+        return Response(serializers.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'])
+    def makeFollow(self, request):
+        to_user = User.objects.get(pk=request.query_params.get('toUser'))
+        relation_type = request.query_params.get('type')
+        try:
+            Relations.objects.get(from_user=request.user, to_user=to_user)
+        except Relations.DoesNotExist:
+            data = {
+                'from_user': request.user.pk,
+                'to_user': to_user.pk,
+                'related_type': relation_type
+            }
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': "exists relation"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['delete'])
+    def deleteFollow(self, request):
+        pass
+
+
+class RelationAPIView(viewsets.ModelViewSet):
+    queryset = Relations.objects.all()
+    serializer_class = RelationSerializers

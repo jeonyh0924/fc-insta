@@ -48,15 +48,15 @@ class User(AbstractBaseUser):
         'self',
         through='Relations',
         # relations_users에 대한 역방향 참조에 대해서 거부한다.
-        # related_name='+',
+        related_name='+',
     )
 
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'
 
-    def __str__(self):
-        return self.email
+    # def __str__(self):
+    #     return self.email
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
@@ -74,9 +74,45 @@ class User(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
-    def save(self, *args, **kwargs):
-        self.set_password(self.password)
-        return super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     self.set_password(self.password)
+    #     return super().save(*args, **kwargs)
+
+    @property
+    def follow(self):
+        # 내가 팔로우를 건 유저
+        user = User.objects.filter(
+            to_users_relation__from_user=self,
+            to_users_relation__related_type='f'
+        )
+        return user
+
+    @property
+    def follower(self):
+        # 나를 팔로우를 건 유저
+        user = User.objects.filter(
+            from_users_relation__to_user=self,
+            from_users_relation__related_type='f'
+        )
+        return user
+
+    @property
+    def blocker(self):
+        # 나를 블락을 건 유저
+        user = User.objects.filter(
+            from_users_relation__to_user=self,
+            from_users_relation__related_type='b'
+        )
+        return user
+
+    @property
+    def block(self):
+        # 내가 블락을 건 유저
+        user = User.objects.filter(
+            to_users_relation__from_user=self,
+            to_users_relation__related_type='b'
+        )
+        return user
 
 
 class Relations(models.Model):
