@@ -16,7 +16,7 @@ class UserModelViewAPI(viewsets.ModelViewSet):
     serializer_class = UserSerializers
 
     def get_serializer_class(self):
-        if self.action in ['makeFollow', 'makeBlock']:
+        if self.action in ['makeFollow', 'makeBlock', 'create_delete_Relation']:
             return RelationSerializers
         return super().get_serializer_class()
 
@@ -98,7 +98,7 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         relation.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, )
+    @action(detail=False, methods=['post', 'delete', 'patch'])
     def create_delete_Relation(self, request):
         """
         :param request: relation type 이 f면 팔로우 해주고  b면 블락건다.
@@ -109,18 +109,30 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         """
         to_user = User.objects.get(pk=request.query_params.get('toUser'))
         relation_type = request.query_params.get('type')
+        method = request._request.method
+        data = {
+            'from_user': request.user.pk,
+            'to_user': to_user.pk,
+            'related_type': relation_type
+        }
         try:
             relation = Relations.objects.get(from_user=request.user, to_user=to_user)
-            relation.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            if method == 'PATCH':
+                serializers = self.get_serializer(relation, data=data, )
+                if serializers.is_valid():
+                    serializers.save()
+                    return Response(serializers.data, status=status.HTTP_200_OK)
+                return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+            elif method == 'DELETE':
+                relation.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({'message': "올바르지 않은 요청입니다."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         except Relations.DoesNotExist:
-            data = {
-                'from_user': request.user.pk,
-                'to_user': to_user.pk,
-                'related_type': relation_type
-            }
-            serializer = self.get_serializer(data=data)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if method == 'POST':
+                serializer = self.get_serializer(data=data)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
