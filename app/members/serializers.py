@@ -6,6 +6,23 @@ from members.models import Relations
 User = get_user_model()
 
 
+class UserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'password',
+        )
+
+    def create(self, validated_data):
+        user = User(
+            email=validated_data['email'],
+        )
+        user.set_password(validated_data['password'])
+        user.save(username=self.context['request'].data.get('username'))
+        return user
+
+
 class UserSerializers(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -14,15 +31,6 @@ class UserSerializers(serializers.ModelSerializer):
             'password': {'write_only': True}
 
         }
-
-    def create(self, validated_data):
-        user = User(
-            email=validated_data['email'],
-            username=validated_data['username']
-        )
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
 
 
 class RelationSerializers(serializers.ModelSerializer):

@@ -1,8 +1,11 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 from django.db import models
 
+
+# User = get_user_model()
 
 class MyUserManager(BaseUserManager):
     def create_user(self, email, password=None):
@@ -19,6 +22,7 @@ class MyUserManager(BaseUserManager):
 
         user.set_password(password)
         user.save(using=self._db)
+
         return user
 
     def create_superuser(self, email, password=None):
@@ -55,8 +59,14 @@ class User(AbstractBaseUser):
 
     USERNAME_FIELD = 'email'
 
-    # def __str__(self):
-    #     return self.email
+    def save(self, *args, **kwargs):
+        username = kwargs.pop('username')
+        super().save(*args, **kwargs)
+        pro = Profile.objects.create(
+            user=self,
+            username=username,
+        )
+        return self
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
@@ -73,10 +83,6 @@ class User(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
-
-    # def save(self, *args, **kwargs):
-    #     self.set_password(self.password)
-    #     return super().save(*args, **kwargs)
 
     @property
     def follow(self):
@@ -145,3 +151,16 @@ class Relations(models.Model):
             ('from_user', 'to_user'),
             ('to_user', 'from_user'),
         )
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(
+        'User',
+        on_delete=models.CASCADE,
+    )
+    username = models.CharField(
+        max_length=15,
+    )
+    introduce = models.CharField(
+        max_length=100,
+    )
