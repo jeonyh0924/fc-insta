@@ -27,3 +27,7 @@ DB_PORT=5432
 
 ### 기능 구현 내용
 
+- 유저 CRUD ( ModelViewSet - CRUD, login, logout, follow, follower, block, create_delete_Relation)
+- 유저 Model (AbstractBaseUser, BaseUserManager)
+
+### 깃 전략 세우기 [링크](https://blog.naver.com/PostView.nhn?blogId=tmondev&logNo=220763012361&redirect=Dlog)
