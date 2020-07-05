@@ -59,15 +59,6 @@ class User(AbstractBaseUser):
 
     USERNAME_FIELD = 'email'
 
-    def save(self, *args, **kwargs):
-        username = kwargs.pop('username')
-        super().save(*args, **kwargs)
-        pro = Profile.objects.create(
-            user=self,
-            username=username,
-        )
-        return self
-
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
         # Simplest possible answer: Yes, always
