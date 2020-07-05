@@ -31,11 +31,15 @@ DB_PORT=5432
 
 - 유저 Model (AbstractBaseUser, BaseUserManager, property- follow, follower, block)
 
+- 유저 OTO Relation Create
+
 ### 깃 전략 세우기 [링크](https://blog.naver.com/PostView.nhn?blogId=tmondev&logNo=220763012361&redirect=Dlog)
 
 ### 깃 라벨 커스텀 [링크](https://github.com/ManageIQ/guides/blob/master/labels.md)
 
 ### 깃 마일드스톤 [링크](https://cyberx.tistory.com/112)
+
+### 깃 브랜치 네이밍 [링크](https://gist.github.com/digitaljhelms/4287848)
 
 
 ####  피드백
