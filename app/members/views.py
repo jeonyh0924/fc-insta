@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model, authenticate
 # Create your views here.
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, exceptions
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -32,6 +32,9 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         email = request.data.get('email')
         password = request.data.get('password')
         user = authenticate(request, email=email, password=password)
+
+        if user is None:
+            raise exceptions.AuthenticationFailed('No such user')
         try:
             token = Token.objects.get(user=user)
         except Token.DoesNotExist:
