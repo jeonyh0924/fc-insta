@@ -1,12 +1,13 @@
 from django.contrib.auth import get_user_model, authenticate
 # Create your views here.
-from rest_framework import viewsets, status, exceptions
+from rest_framework import viewsets, status, exceptions, mixins
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
-from members.models import Relations
-from members.serializers import UserSerializers, RelationSerializers, UserCreateSerializer
+from members.models import Relations, Profile
+from members.serializers import UserSerializers, RelationSerializers, UserCreateSerializer, ProfileUpdateSerializer
 
 User = get_user_model()
 
@@ -115,7 +116,6 @@ class UserModelViewAPI(viewsets.ModelViewSet):
 
         1. 이미 팔로우 한 유저가 블락을 걸면 이미 존재하는 릴레이션 지우고 사용자의 요청에 맞게 해준다.
 
-        :return:
         """
         to_user = User.objects.get(pk=request.query_params.get('toUser'))
         relation_type = request.query_params.get('type')
@@ -146,3 +146,8 @@ class UserModelViewAPI(viewsets.ModelViewSet):
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class UserProfileView(mixins.UpdateModelMixin, GenericViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileUpdateSerializer

@@ -45,3 +45,12 @@ class RelationSerializers(serializers.ModelSerializer):
     class Meta:
         model = Relations
         fields = ('id', 'from_user', 'to_user', 'related_type')
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = (
+            'username',
+            'introduce'
+        )
