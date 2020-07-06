@@ -148,10 +148,12 @@ class Profile(models.Model):
     user = models.OneToOneField(
         'User',
         on_delete=models.CASCADE,
+        # related_name='profile_set',
     )
     username = models.CharField(
         max_length=15,
     )
     introduce = models.CharField(
         max_length=100,
+        null=True,
     )

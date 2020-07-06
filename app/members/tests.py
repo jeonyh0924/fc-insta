@@ -6,6 +6,8 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
+from members.models import Profile
+
 User = get_user_model()
 
 
@@ -17,9 +19,11 @@ class UserTest(APITestCase):
         self.user.set_password(self.user.password)
         self.user.save()
 
+
     def test_list(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.fail()
 
     def test_create(self):
         data = {
@@ -31,6 +35,10 @@ class UserTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = response.data
         self.assertEqual(response_data['email'], data['email'])
+
+        # 유저 생성 시 프로필이 올바르게 생성이 되었는지
+        user = User.objects.get(email=data['email'])
+        self.assertTrue(user.profile)
 
     def test_retrieve(self):
         url = self.url + f'/{self.user.id}'
@@ -93,3 +101,13 @@ class UserTest(APITestCase):
 
         self.assertEqual(Token.objects.filter(user=self.user).first(), None)
 
+    def test_profile_update(self):
+        Profile.objects.create(user=self.user, username='testUser')
+        data = {
+            'username': 'updateUser',
+            'introduce': 'update introduce'
+        }
+        response = self.client.patch(f'/users/profile/{self.user.profile.id}', data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], data['username'])
+        self.assertEqual(response.data['introduce'], data['introduce'])
