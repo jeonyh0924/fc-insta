@@ -20,7 +20,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
 
         """
-        이러면 admin 페이지에서 유저 생성시 프로필이 생기지 않고
+        이러면 admin 페이지에서 유저 생성시 프로필이 생기지 않고 ->> 반례: admin페이지는 유저 안에 다른 속성을 넣지 못해서
+         
         model save()에서 커스텀을 하려면 save에 어떤 인자를 보내야 받을 수 있을까?
         """
         pro = Profile.objects.create(
