@@ -33,6 +33,8 @@ DB_PORT=5432
 
 - 유저 OTO Relation Create
 
+- 유저 testcode ( CRUD, login, logout, profile CU)
+
 ### 깃 전략 세우기 [링크](https://blog.naver.com/PostView.nhn?blogId=tmondev&logNo=220763012361&redirect=Dlog)
 
 ### 깃 라벨 커스텀 [링크](https://github.com/ManageIQ/guides/blob/master/labels.md)
