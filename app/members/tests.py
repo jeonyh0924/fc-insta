@@ -1,7 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
-
-# Create your tests here.
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
@@ -12,7 +9,7 @@ User = get_user_model()
 
 
 class UserTest(APITestCase):
-    url = '/users/user'
+    url = '/users'
 
     def setUp(self) -> None:
         self.user = User(email='test@email.com', password='1111')
@@ -23,7 +20,6 @@ class UserTest(APITestCase):
     def test_list(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.fail()
 
     def test_create(self):
         data = {
@@ -107,7 +103,7 @@ class UserTest(APITestCase):
             'username': 'updateUser',
             'introduce': 'update introduce'
         }
-        response = self.client.patch(f'/users/profile/{self.user.profile.id}', data=data)
+        response = self.client.patch(f'/profile/{self.user.profile.id}', data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['username'], data['username'])
         self.assertEqual(response.data['introduce'], data['introduce'])
