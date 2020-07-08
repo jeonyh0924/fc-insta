@@ -57,5 +57,6 @@ class PostTest(APITestCase):
 
     def test_destroy(self):
         url = self.url + f'/{self.post.id}'
+        self.client.force_authenticate(self.user)
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

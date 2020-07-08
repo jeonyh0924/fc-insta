@@ -16,7 +16,6 @@ class UserTest(APITestCase):
         self.user.set_password(self.user.password)
         self.user.save()
 
-
     def test_list(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -107,3 +106,21 @@ class UserTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['username'], data['username'])
         self.assertEqual(response.data['introduce'], data['introduce'])
+
+    def test_change_password(self):
+        url = self.url + f'/{self.user.id}/change-password'
+        self.client.force_authenticate(self.user)
+        # 비밀번호가 맞는 경우.
+        data = {
+            "old_password": '1111',
+            "new_password": '2222',
+        }
+        response = self.client.post(url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # 비밀번호가 틀린 경우
+        data = {
+            "old_password": '11111',
+            "new_password": '2222',
+        }
+        response = self.client.post(url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

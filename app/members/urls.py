@@ -13,6 +13,6 @@ users_router = routers.NestedSimpleRouter(router, 'users')
 users_router.register('posts', PostsAPIView)
 
 urlpatterns = [
-    url(r'^', include(router.urls)),
-    url(r'^', include(users_router.urls)),
+    url(r'', include(router.urls)),
+    url(r'', include(users_router.urls)),
 ]
