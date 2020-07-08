@@ -11,6 +11,8 @@ router.register('profile', UserProfileView)
 
 users_router = routers.NestedSimpleRouter(router, 'users')
 users_router.register('posts', PostsAPIView)
+posts_router = routers.NestedSimpleRouter(users_router, 'users')
+posts_router.register('comments', PostsAPIView)
 
 urlpatterns = [
     url(r'', include(router.urls)),

@@ -18,6 +18,7 @@ class PostTest(APITestCase):
             self.post = Post.objects.create(
                 user=self.user,
                 title=f'test Post{i}'
+
             )
         self.url = f'/users/{self.user.id}/posts'
 
