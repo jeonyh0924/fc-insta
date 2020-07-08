@@ -3,7 +3,6 @@ import environ
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_DIR = os.path.dirname(os.path.dirname(BASE_DIR))
-print(ROOT_DIR)
 env_file = ROOT_DIR + '/.env'
 
 environ.Env.read_env(env_file=env_file)
