@@ -21,6 +21,7 @@ from rest_framework.authtoken import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('users/', include('members.urls')),
+    path('', include('members.urls')),
+    # path('posts/', include('posts.urls')),
 
 ]
