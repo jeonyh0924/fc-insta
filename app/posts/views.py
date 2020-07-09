@@ -5,10 +5,12 @@ from django.shortcuts import render
 from django.test import TestCase
 
 # Create your tests here.
-from rest_framework import views, viewsets
+from rest_framework import views, viewsets, mixins
+from rest_framework.viewsets import GenericViewSet
 
-from posts.models import Post, Comment
-from posts.serializers import PostSerializers, CommentSerializers, CommentUpdateSerializers, PostUpdateSerializers
+from posts.models import Post, Comment, PostLike
+from posts.serializers import PostSerializers, CommentSerializers, CommentUpdateSerializers, PostUpdateSerializers, \
+    PostLikeSerializers
 
 User = get_user_model()
 
@@ -47,3 +49,11 @@ class CommentAPIView(viewsets.ModelViewSet):
         serializer.save(user=self.request.user,
                         post=Post.objects.get(pk=self.kwargs['nested_2_pk'])
                         )
+
+
+class PostLikeAPIView(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+    queryset = PostLike.objects.all()
+    serializer_class = PostLikeSerializers
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user, post=Post.objects.get(pk=self.kwargs['nested_2_pk']))
