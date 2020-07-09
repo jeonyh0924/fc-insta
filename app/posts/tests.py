@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from posts.models import Post, Comment
+from posts.models import Post, Comment, PostLike
 
 User = get_user_model()
 
@@ -105,4 +105,34 @@ class CommentTest(APITestCase):
 
     def test_destroy(self):
         response = self.client.delete(self.url_detail)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class PostLikeTest(APITestCase):
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(
+            email='testUser@test.com',
+            password='1111'
+        )
+        self.post = Post.objects.create(
+            title='test Post',
+            content='test content',
+            user=self.user,
+
+        )
+        self.url = f'/users/{self.user.id}/posts/{self.post.id}/like'
+
+    def test_create(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.post(self.url, data={})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['post'], self.post.id)
+        self.assertEqual(response.data['user'], self.user.id)
+
+    def test_destroy(self):
+        like = PostLike.objects.create(
+            post=self.post,
+            user=self.user
+        )
+        response = self.client.delete(self.url + f'/{like.id}')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
