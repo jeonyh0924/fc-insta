@@ -27,13 +27,17 @@ DB_PORT=5432
 
 ### 기능 구현 내용
 
-- 유저 CRUD ( ModelViewSet - CRUD, login, logout, follow, follower, block, create_delete_Relation)
+- Nested Router
+
+- 유저 CRUD ( ModelViewSet - CRUD, login, logout, follow, follower, block, create_delete_Relation, set-password)
 
 - 유저 Model (AbstractBaseUser, BaseUserManager, property- follow, follower, block)
 
 - 유저 OTO Relation Create
 
 - 유저 testcode ( CRUD, login, logout, profile CU)
+
+- 게시글 CRUD , 댓글 CRUD, Like CD
 
 ### 깃 전략 세우기 [링크](https://blog.naver.com/PostView.nhn?blogId=tmondev&logNo=220763012361&redirect=Dlog)
 
