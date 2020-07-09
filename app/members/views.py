@@ -17,6 +17,7 @@ User = get_user_model()
 class UserModelViewAPI(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializers
+    
 
     def get_serializer_class(self):
         if self.action in ['makeFollow', 'makeBlock', 'create_delete_Relation']:
@@ -37,11 +38,9 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         user = get_object_or_404(User, pk=pk)
         self.check_object_permissions(self.request, user)
         serializer = self.get_serializer(user, data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'])
     def login(self, request):
