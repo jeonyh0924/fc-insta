@@ -63,27 +63,46 @@ class PostTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 
-# class CommentTest(APITestCase):
-#     def setUp(self) -> None:
-#         self.user = User.objects.create_user(
-#             email='testUser@test.com',
-#             password='1111',
-#         )
-#         self.post = Post.objects.create(
-#             title='test Post title',
-#             content='test Content title',
-#         )
-#         self.comment = Comment.objects.create(
-#             content='test Content',
-#             post=self.post,
-#             user=self.user
-#         )
-#
-#     def test_list(self):
-#         self.fail()
-#
-#     def test_create(self):
-#         data = {
-#
-#         }
-#         self.fail()
+class CommentTest(APITestCase):
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(
+            email='testUser@test.com',
+            password='1111',
+        )
+        self.post = Post.objects.create(
+            title='test Post title',
+            content='test Content title',
+        )
+        for i in range(3):
+            self.comment = Comment.objects.create(
+                content=f'test Content {i}',
+                post=self.post,
+                user=self.user
+            )
+        self.url = f'/users/{self.user.id}/posts/{self.post.id}/comments'
+        self.url_detail = self.url + f'/{self.comment.id}'
+
+    def test_list(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_create(self):
+        self.client.force_authenticate(self.user)
+        data = {
+            'content': 'test create content',
+        }
+        response = self.client.post(self.url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_update(self):
+        data = {
+            'content': 'update content'
+        }
+        response = self.client.patch(self.url_detail, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['content'], data['content'])
+        self.assertEqual(response.data['id'], self.comment.id)
+
+    def test_destroy(self):
+        response = self.client.delete(self.url_detail)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

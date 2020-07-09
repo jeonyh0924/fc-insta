@@ -66,4 +66,4 @@ class ChangePassSerializers(serializers.Serializer):
         if instance.check_password(old_password):
             instance.set_password(new_password)
             return instance
-        raise exceptions.AuthenticationFailed('old password is not valid')
+        raise exceptions.AuthenticationFailed()
