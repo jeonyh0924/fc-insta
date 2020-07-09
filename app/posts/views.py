@@ -7,8 +7,8 @@ from django.test import TestCase
 # Create your tests here.
 from rest_framework import views, viewsets
 
-from posts.models import Post
-from posts.serializers import PostSerializers
+from posts.models import Post, Comment
+from posts.serializers import PostSerializers, CommentSerializers
 
 User = get_user_model()
 
@@ -21,8 +21,14 @@ class PostsAPIView(viewsets.ModelViewSet):
         qs = Post.objects.filter(user=User.objects.first())
         return qs
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    # def perform_create(self, serializer):
+    #     serializer.save(user=self.request.user)
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class CommentAPIView(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializers
+

@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from posts.models import Post
+from posts.models import Post, Comment
 
 User = get_user_model()
 
@@ -18,6 +18,7 @@ class PostTest(APITestCase):
             self.post = Post.objects.create(
                 user=self.user,
                 title=f'test Post{i}'
+
             )
         self.url = f'/users/{self.user.id}/posts'
 
@@ -60,3 +61,29 @@ class PostTest(APITestCase):
         self.client.force_authenticate(self.user)
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+# class CommentTest(APITestCase):
+#     def setUp(self) -> None:
+#         self.user = User.objects.create_user(
+#             email='testUser@test.com',
+#             password='1111',
+#         )
+#         self.post = Post.objects.create(
+#             title='test Post title',
+#             content='test Content title',
+#         )
+#         self.comment = Comment.objects.create(
+#             content='test Content',
+#             post=self.post,
+#             user=self.user
+#         )
+#
+#     def test_list(self):
+#         self.fail()
+#
+#     def test_create(self):
+#         data = {
+#
+#         }
+#         self.fail()

@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 
 from members.models import Relations, Profile
 
@@ -57,9 +57,13 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
 
 class ChangePassSerializers(serializers.Serializer):
-    model = User
     old_password = serializers.CharField(max_length=128, required=True, )
     new_password = serializers.CharField(max_length=128, required=True, )
 
     def update(self, instance, validated_data):
-        return super().update()
+        old_password = validated_data.get('old_password')
+        new_password = validated_data.get('new_password')
+        if instance.check_password(old_password):
+            instance.set_password(new_password)
+            return instance
+        raise exceptions.AuthenticationFailed('old password is not valid')
