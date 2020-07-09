@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model, authenticate
 from rest_framework import viewsets, status, exceptions, mixins
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -33,14 +34,12 @@ class UserModelViewAPI(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='change-password')
     def set_password(self, request, pk):
-        serializer = self.get_serializer(data=request.data)
+        user = get_object_or_404(User, pk=pk)
+        self.check_object_permissions(self.request, user)
+        serializer = self.get_serializer(user, data=request.data)
+
         if serializer.is_valid():
-            old_password = serializer.data.get("old_password")
-            new_password = serializer.data.get("new_password")
-            if not request.user.check_password(old_password):
-                return Response({'message': 'invalid password'}, status=status.HTTP_400_BAD_REQUEST)
-            request.user.set_password(new_password)
-            request.user.save()
+            serializer.save()
             return Response(status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from posts.models import Post
+from posts.models import Post, Comment
 
 
 class PostSerializers(serializers.ModelSerializer):
@@ -10,3 +10,9 @@ class PostSerializers(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return super().create(validated_data)
+
+
+class CommentSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ('id', 'content', 'post', 'user')
