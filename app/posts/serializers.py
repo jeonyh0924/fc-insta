@@ -21,6 +21,7 @@ class PostUpdateSerializers(serializers.ModelSerializer):
 
 class CommentSerializers(serializers.ModelSerializer):
     user = UserSerializers()
+
     class Meta:
         model = Comment
         fields = ('id', 'content', 'post', 'user')
@@ -35,4 +36,10 @@ class CommentUpdateSerializers(serializers.ModelSerializer):
 class PostLikeSerializers(serializers.ModelSerializer):
     class Meta:
         model = PostLike
+        fields = ('id', 'post', 'user')
+
+
+class CommentLikeSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
         fields = ('id', 'post', 'user')
