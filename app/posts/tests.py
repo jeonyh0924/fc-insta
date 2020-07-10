@@ -121,6 +121,8 @@ class PostLikeTest(APITestCase):
 
         )
         self.url = f'/users/{self.user.id}/posts/{self.post.id}/like'
+        # users/1/posts/2/comment
+        # request.user
 
     def test_create(self):
         self.client.force_authenticate(self.user)
@@ -128,6 +130,7 @@ class PostLikeTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['post'], self.post.id)
         self.assertEqual(response.data['user'], self.user.id)
+        self.fail()
 
     def test_destroy(self):
         like = PostLike.objects.create(

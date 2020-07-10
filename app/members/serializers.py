@@ -65,5 +65,6 @@ class ChangePassSerializers(serializers.Serializer):
         new_password = validated_data.get('new_password')
         if instance.check_password(old_password):
             instance.set_password(new_password)
+            # instance.save 하면 모델의 create가 된다.
             return instance
         raise exceptions.AuthenticationFailed()
