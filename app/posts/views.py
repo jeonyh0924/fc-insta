@@ -8,9 +8,9 @@ from django.test import TestCase
 from rest_framework import views, viewsets, mixins
 from rest_framework.viewsets import GenericViewSet
 
-from posts.models import Post, Comment, PostLike
+from posts.models import Post, Comment, PostLike, CommentLike
 from posts.serializers import PostSerializers, CommentSerializers, CommentUpdateSerializers, PostUpdateSerializers, \
-    PostLikeSerializers
+    PostLikeSerializers, CommentLikeSerializers
 
 User = get_user_model()
 
@@ -58,3 +58,8 @@ class PostLikeAPIView(mixins.CreateModelMixin, mixins.DestroyModelMixin, Generic
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, post=Post.objects.get(pk=self.kwargs['nested_2_pk']))
+
+
+class CommentLikeAPIView(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+    queryset = CommentLike.objects.all()
+    serializer_class = CommentLikeSerializers
