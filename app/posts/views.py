@@ -46,9 +46,10 @@ class CommentAPIView(viewsets.ModelViewSet):
             return super().get_serializer_class()
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user,
-                        post=Post.objects.get(pk=self.kwargs['nested_2_pk'])
-                        )
+        serializer.save(
+            user=self.request.user,
+            post=Post.objects.get(pk=self.kwargs['nested_2_pk'])
+        )
 
 
 class PostLikeAPIView(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
