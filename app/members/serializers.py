@@ -51,6 +51,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = (
+            'id',
             'username',
             'introduce'
         )

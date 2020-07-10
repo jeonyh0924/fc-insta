@@ -17,7 +17,6 @@ User = get_user_model()
 class UserModelViewAPI(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializers
-    
 
     def get_serializer_class(self):
         if self.action in ['makeFollow', 'makeBlock', 'create_delete_Relation']:
@@ -162,6 +161,13 @@ class UserModelViewAPI(viewsets.ModelViewSet):
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class UserProfileView(mixins.UpdateModelMixin, GenericViewSet):
+class UserProfileView(mixins.UpdateModelMixin, mixins.RetrieveModelMixin, GenericViewSet, mixins.ListModelMixin, ):
     queryset = Profile.objects.all()
     serializer_class = ProfileUpdateSerializer
+
+    def get_queryset(self):
+        if self.action == 'retrieve':
+            qs = Profile.objects.filter(pk=self.kwargs['nested_1_pk'])
+        elif self.action == 'list':
+            qs = Profile.objects.filter(user=self.request.user)
+        return qs
