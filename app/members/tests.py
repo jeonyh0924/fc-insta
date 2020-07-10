@@ -15,6 +15,16 @@ class UserTest(APITestCase):
         self.user = User(email='test@email.com', password='1111')
         self.user.set_password(self.user.password)
         self.user.save()
+        self.user2 = User.objects.create_user(email='test2@email', password='1111')
+
+        self.profile = Profile.objects.create(
+            user=self.user,
+            username='testUser'
+        )
+        self.profile2 = Profile.objects.create(
+            user=self.user2,
+            username='testUser'
+        )
 
     def test_list(self):
         response = self.client.get(self.url)
@@ -95,6 +105,18 @@ class UserTest(APITestCase):
         self.assertIsNone(token.key)
 
         self.assertEqual(Token.objects.filter(user=self.user).first(), None)
+
+    def test_profile_retrieve(self):
+        # 특정 프로필에 조회를 할 경우
+        self.client.force_authenticate(self.user)
+        url = self.url + f'/{self.user.id}/profile/{self.profile.id}'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # 자기 자신의 프로필에 요청을 할 경우
+        self.client.force_authenticate(self.user2)
+        url = self.url + f'/{self.user2.id}/profile'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_profile_update(self):
         Profile.objects.create(user=self.user, username='testUser')

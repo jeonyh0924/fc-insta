@@ -7,10 +7,9 @@ from posts.views import PostsAPIView, CommentAPIView, PostLikeAPIView
 
 router = routers.SimpleRouter(trailing_slash=False)
 router.register('users', UserModelViewAPI)
-router.register('profile', UserProfileView)
-
 users_router = routers.NestedSimpleRouter(router, 'users')
 users_router.register('posts', PostsAPIView)
+users_router.register('profile', UserProfileView)
 posts_router = routers.NestedSimpleRouter(users_router, 'posts')
 posts_router.register('comments', CommentAPIView)
 posts_router.register('like', PostLikeAPIView)
