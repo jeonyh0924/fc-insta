@@ -20,6 +20,7 @@ class Post(models.Model):
         upload_to="%y/%m/%d",
         null=True,
     )
+    like_count = models.IntegerField(default=0)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -72,4 +73,7 @@ class CommentLike(models.Model):
         Comment,
         on_delete=models.CASCADE,
         null=True,
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
     )
