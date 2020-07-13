@@ -11,7 +11,7 @@ class PostImageSerializers(serializers.ModelSerializer):
 
 
 class PostSerializers(serializers.ModelSerializer):
-    images = PostImageSerializers(many=True, source='postimage_set', read_only=True, )
+    images = PostImageSerializers(many=True, read_only=True, )
 
     class Meta:
         model = Post

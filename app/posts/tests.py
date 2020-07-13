@@ -10,7 +10,6 @@ User = get_user_model()
 
 
 class PostTest(APITestCase):
-
     def setUp(self) -> None:
         self.user = User.objects.create_user(
             email='testUser@test.com',
@@ -50,7 +49,6 @@ class PostTest(APITestCase):
         post = Post.objects.last()
         data = post.postimage_set.all()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.fail()
 
     def test_retrieve(self):
         url = self.url + f'/{self.post.id}'
