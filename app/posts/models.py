@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import F
 
 User = get_user_model()
 
@@ -45,7 +46,7 @@ class Comment(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True,
     )
-
+    like_count = models.IntegerField(default=0)
 
 class PostLike(models.Model):
     user = models.ForeignKey(
@@ -62,6 +63,16 @@ class PostLike(models.Model):
         auto_now_add=True,
     )
 
+    class Meta:
+        unique_together = ['user', 'post']
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        post = Post.objects.get(id=self.post.id)
+        post.like_count = F('like_count') + 1
+        post.save()
+        return super().save()
+
 
 class CommentLike(models.Model):
     user = models.ForeignKey(
@@ -77,3 +88,12 @@ class CommentLike(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True,
     )
+
+    class Meta:
+        unique_together = ('user', 'comment')
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        comment = Comment.objects.filter(id=self.comment_id)
+        comment.update(like_count=F('like_count') + 1)
+        return super().save()

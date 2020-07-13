@@ -69,6 +69,7 @@ class PostLikeAPIView(mixins.CreateModelMixin, mixins.DestroyModelMixin, Generic
             }
             serializers = PostLikeSerializers(data=data)
             serializers.is_valid(raise_exception=True)
+            serializers.save()
             return Response(serializers.data, status=status.HTTP_201_CREATED)
 
 
@@ -93,4 +94,5 @@ class CommentLikeAPIView(mixins.CreateModelMixin, mixins.DestroyModelMixin, Gene
             }
             serializers = self.get_serializer(data=data)
             serializers.is_valid(raise_exception=True)
+            serializers.save()
             return Response(serializers.data, status=status.HTTP_201_CREATED)
