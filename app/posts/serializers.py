@@ -1,22 +1,34 @@
 from rest_framework import serializers
 
 from members.serializers import UserSerializers
-from posts.models import Post, Comment, PostLike, CommentLike
+from posts.models import Post, Comment, PostLike, CommentLike, PostImage
+
+
+class PostImageSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = PostImage
+        fields = ('image')
 
 
 class PostSerializers(serializers.ModelSerializer):
+    images = PostImageSerializers(many=True, read_only=True, )
+
     class Meta:
         model = Post
-        fields = ('id', 'title', 'content', 'image', 'user')
+        fields = ('id', 'title', 'content', 'user', 'images')
 
     def create(self, validated_data):
-        return super().create(validated_data)
+        posts_image = self.context['request'].FILES
+        post = Post.objects.create(**validated_data)
+        for image in posts_image.getlist('image'):
+            image = PostImage.objects.create(post=post, image=image)
+        return post
 
 
 class PostUpdateSerializers(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ('id', 'title', 'content', 'image')
+        fields = ('id', 'title', 'content')
 
 
 class CommentSerializers(serializers.ModelSerializer):

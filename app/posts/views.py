@@ -25,7 +25,9 @@ class PostsAPIView(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(user=self.request.user,
+                        # context=self.request
+                        )
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
