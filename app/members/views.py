@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from members.models import Relations, Profile
+from members.permissions import IsOwnerOrReadOnly
 from members.serializers import UserSerializers, RelationSerializers, UserCreateSerializer, ProfileUpdateSerializer, \
     ChangePassSerializers
 
@@ -17,6 +18,11 @@ User = get_user_model()
 class UserModelViewAPI(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializers
+
+    def get_permissions(self):
+        if self.action in ['partial_update', 'destroy']:
+            return [IsOwnerOrReadOnly()]
+        return super().get_permissions()
 
     def get_serializer_class(self):
         if self.action in ['makeFollow', 'makeBlock', 'create_delete_Relation']:
@@ -166,7 +172,7 @@ class UserProfileView(mixins.UpdateModelMixin, mixins.RetrieveModelMixin, Generi
     serializer_class = ProfileUpdateSerializer
 
     def get_queryset(self):
-        if self.action == 'retrieve':
+        if self.action in ['retrieve', 'partial_update']:
             qs = Profile.objects.filter(pk=self.kwargs['nested_1_pk'])
         elif self.action == 'list':
             qs = Profile.objects.filter(user=self.request.user)

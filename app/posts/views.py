@@ -20,14 +20,8 @@ class PostsAPIView(viewsets.ModelViewSet):
             return PostUpdateSerializers
         return super().get_serializer_class()
 
-    def get_queryset(self):
-        qs = Post.objects.filter(user=User.objects.first())
-        return qs
-
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user,
-                        # context=self.request
-                        )
+        serializer.save(user=self.request.user)
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
@@ -50,14 +44,13 @@ class CommentAPIView(viewsets.ModelViewSet):
         )
 
 
-class PostLikeAPIView(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+class PostLikeAPIView(GenericViewSet):
     queryset = PostLike.objects.all()
     serializer_class = PostLikeSerializers
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, post=Post.objects.get(pk=self.kwargs['nested_2_pk']))
 
-    # http://localhost:8000/users/1/posts/1/like/
     @action(detail=False, methods=['post'], url_path='toggle')
     def like_toggle(self, request, **kwargs):
         try:

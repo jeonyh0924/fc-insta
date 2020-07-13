@@ -7,7 +7,7 @@ from posts.models import Post, Comment, PostLike, CommentLike, PostImage
 class PostImageSerializers(serializers.ModelSerializer):
     class Meta:
         model = PostImage
-        fields = ('image')
+        fields = ('id', 'image')
 
 
 class PostSerializers(serializers.ModelSerializer):
@@ -20,7 +20,7 @@ class PostSerializers(serializers.ModelSerializer):
     def create(self, validated_data):
         posts_image = self.context['request'].FILES
         post = Post.objects.create(**validated_data)
-        for image in posts_image.getlist('image'):
+        for image in posts_image.getlist('images'):
             image = PostImage.objects.create(post=post, image=image)
         return post
 
@@ -32,7 +32,7 @@ class PostUpdateSerializers(serializers.ModelSerializer):
 
 
 class CommentSerializers(serializers.ModelSerializer):
-    user = UserSerializers()
+    user = UserSerializers(read_only=True)
 
     class Meta:
         model = Comment

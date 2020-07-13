@@ -57,6 +57,7 @@ class UserTest(APITestCase):
             'password': '1111',
         }
         url = self.url + f'/{self.user.id}'
+        self.client.force_authenticate(self.user)
         response = self.client.patch(url, data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['email'], self.user.email)
@@ -64,6 +65,7 @@ class UserTest(APITestCase):
 
     def test_destroy(self):
         url = self.url + f'/{self.user.id}'
+        self.client.force_authenticate(self.user)
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -119,12 +121,12 @@ class UserTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_profile_update(self):
-        Profile.objects.create(user=self.user, username='testUser')
+        # Profile.objects.create(user=self.user, username='testUser')
         data = {
             'username': 'updateUser',
             'introduce': 'update introduce'
         }
-        response = self.client.patch(f'/profile/{self.user.profile.id}', data=data)
+        response = self.client.patch(f'/users/{self.user.id}/profile/{self.user.profile.id}', data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['username'], data['username'])
         self.assertEqual(response.data['introduce'], data['introduce'])
