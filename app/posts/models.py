@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import F
+from mptt.fields import TreeForeignKey
+from mptt.models import MPTTModel
 
 User = get_user_model()
 
@@ -40,7 +42,14 @@ class PostImage(models.Model):
     )
 
 
-class Comment(models.Model):
+class Comment(MPTTModel):
+    parent = TreeForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='child',
+    )
     content = models.CharField(
         '댓글 내용',
         max_length=100,
@@ -48,12 +57,12 @@ class Comment(models.Model):
     post = models.ForeignKey(
         'Post',
         on_delete=models.CASCADE,
-        null=True,
+        # null=True,
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        null=True,
+        # null=True,
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -101,7 +110,6 @@ class CommentLike(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True,
     )
-
 
     class Meta:
         unique_together = ('user', 'comment')

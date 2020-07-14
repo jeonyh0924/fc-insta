@@ -47,8 +47,9 @@ class PostTest(APITestCase):
         self.client.force_authenticate(self.user)
         response = self.client.post(self.url, data=data)
         post = Post.objects.last()
-        data = post.postimage_set.all()
+        # data = post.postimage_set.all()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.fail()
 
     def test_retrieve(self):
         url = self.url + f'/{self.post.id}'
@@ -93,6 +94,12 @@ class CommentTest(APITestCase):
                 post=self.post,
                 user=self.user
             )
+        self.recomment = Comment.objects.create(
+            content='test Content',
+            post=self.post,
+            user=self.user,
+            parent=self.comment
+        )
         self.url = f'/users/{self.user.id}/posts/{self.post.id}/comments'
         self.url_detail = self.url + f'/{self.comment.id}'
 
@@ -106,9 +113,11 @@ class CommentTest(APITestCase):
             'content': 'test create content',
             'user': self.user.id,
             'post': self.post.id,
+            # 'parent': self.recomment.id
         }
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.fail()
 
     def test_update(self):
         data = {

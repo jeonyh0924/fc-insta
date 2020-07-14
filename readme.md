@@ -62,3 +62,10 @@ DB_PORT=5432
 
 #### media
 [링크](https://ssungkang.tistory.com/entry/Django-media-%ED%8C%8C%EC%9D%BC-%EC%97%85%EB%A1%9C%EB%93%9C%ED%95%98%EA%B8%B0)
+
+
+
+### MTPP [튜토리얼](https://django-mptt.readthedocs.io/en/latest/tutorial.html)
+> pip intall django-mtpp
+> installed apps 추가 ( 'mtpp')
+> 
