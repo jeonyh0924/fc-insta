@@ -1,8 +1,6 @@
-import factory
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import F
-from factory import Factory
 
 User = get_user_model()
 
@@ -12,7 +10,6 @@ def post_image_path(instance, filename):
     return path
 
 
-# Create your models here.
 class Post(models.Model):
     title = models.CharField('글 제목', max_length=20, )
     content = models.CharField('글 내용', max_length=50, null=True, )
@@ -105,6 +102,7 @@ class CommentLike(models.Model):
         auto_now_add=True,
     )
 
+
     class Meta:
         unique_together = ('user', 'comment')
 
@@ -113,10 +111,3 @@ class CommentLike(models.Model):
         comment = Comment.objects.filter(id=self.comment_id)
         comment.update(like_count=F('like_count') + 1)
         return super().save()
-
-
-class PostFactory(Factory):
-    class Meta:
-        model = PostImage
-
-    image = factory.django.ImageField(color='blue')
