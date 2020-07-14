@@ -13,16 +13,11 @@ class CommentSerializers(serializers.ModelSerializer):
 
 
 class CommentListSerializers(serializers.ModelSerializer):
-    # parent = CommentSerializers()
-    # recomment = serializers.SerializerMethodField()
     reco = CommentSerializers(source='child', many=True)
 
     class Meta:
         model = Comment
         fields = ('id', 'content', 'post', 'user', 'parent', 'reco',)
-
-    # def get_recomment(self, obj):
-    #     pass
 
 
 class CommentUpdateSerializers(serializers.ModelSerializer):
@@ -40,6 +35,7 @@ class PostImageSerializers(serializers.ModelSerializer):
 class PostSerializers(serializers.ModelSerializer):
     images = PostImageSerializers(many=True, read_only=True, )
     comment = CommentSerializers(many=True, read_only=True)
+    user = UserSerializers(read_only=True, )
 
     class Meta:
         model = Post
@@ -49,7 +45,7 @@ class PostSerializers(serializers.ModelSerializer):
         posts_image = self.context['request'].FILES
         post = Post.objects.create(**validated_data)
         for image in posts_image.getlist('images'):
-            image = PostImage.objects.create(post=post, image=image)
+            PostImage.objects.create(post=post, image=image)
         return post
 
 

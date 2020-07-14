@@ -47,14 +47,13 @@ class PostTest(APITestCase):
         self.client.force_authenticate(self.user)
         response = self.client.post(self.url, data=data)
         post = Post.objects.last()
-        # data = post.postimage_set.all()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.fail()
 
     def test_retrieve(self):
         url = self.url + f'/{self.post.id}'
         response = self.client.get(url)
-        self.assertEqual(self.post.user.id, response.data['user'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.post.user.email, response.data['user']['email'])
         self.assertEqual(self.post.title, response.data['title'])
 
     def test_update(self):
@@ -110,7 +109,7 @@ class CommentTest(APITestCase):
             print(i['content'])
             print(i['id'])
 
-        self.fail()
+
 
     def test_create(self):
         self.client.force_authenticate(self.user)

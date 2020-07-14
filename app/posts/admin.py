@@ -9,7 +9,7 @@ class PostAdmin(admin.ModelAdmin):
 
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'content', 'post', 'user', 'created_at', 'like_count']
+    list_display = ['id', 'content', 'post', 'user', 'created_at', 'like_count', 'parent']
 
 
 class PostLikeAdmin(admin.ModelAdmin):

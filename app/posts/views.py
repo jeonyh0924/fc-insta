@@ -19,6 +19,8 @@ class PostsAPIView(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'partial_update':
             return PostUpdateSerializers
+        elif self.action == 'list':
+            return PostSerializers
         return super().get_serializer_class()
 
     def perform_create(self, serializer):
@@ -48,7 +50,10 @@ class CommentAPIView(viewsets.ModelViewSet):
             # parent 의 부모가 있다면, 올바르지 않은 생성 - 대대댓글이 된다.
             if ins.parent:
                 # raise Exception('depth of comments is only level 2')
-                return Response({'message': 'depth of comments is only level 2'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'message': 'depth of comments is only level 2'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         except MultiValueDictKeyError:
             return super().create(request, *args, **kwargs)
 
@@ -64,14 +69,23 @@ class PostLikeAPIView(GenericViewSet):
     serializer_class = PostLikeSerializers
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user, post=Post.objects.get(pk=self.kwargs['nested_2_pk']))
+        serializer.save(
+            user=self.request.user,
+            post=Post.objects.get(pk=self.kwargs['nested_2_pk'])
+        )
 
     @action(detail=False, methods=['post'], url_path='toggle')
     def like_toggle(self, request, **kwargs):
         try:
-            like = PostLike.objects.get(user=request.user, post=Post.objects.get(pk=self.kwargs['nested_2_pk']))
+            like = PostLike.objects.get(
+                user=request.user,
+                post=Post.objects.get(pk=self.kwargs['nested_2_pk'])
+            )
             like.delete()
-            return Response({'message': 'post like delete'}, status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {'message': 'post like delete'},
+                status=status.HTTP_204_NO_CONTENT
+            )
         except PostLike.DoesNotExist:
             data = {
                 'post': Post.objects.get(pk=self.kwargs['nested_2_pk']).pk,
@@ -88,15 +102,23 @@ class CommentLikeAPIView(mixins.CreateModelMixin, mixins.DestroyModelMixin, Gene
     serializer_class = CommentLikeSerializers
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user.id, comment=Comment.objects.get(pk=self.kwargs['nested_1_pk']).pk)
+        serializer.save(
+            user=self.request.user.id,
+            comment=Comment.objects.get(pk=self.kwargs['nested_1_pk']).pk
+        )
 
     @action(detail=False, methods=['post'], url_path='toggle')
     def like_toggle(self, request, **kwargs):
         try:
-            like = CommentLike.objects.get(user=request.user,
-                                           comment=Comment.objects.get(pk=self.kwargs['nested_2_pk']))
+            like = CommentLike.objects.get(
+                user=request.user,
+                comment=Comment.objects.get(pk=self.kwargs['nested_2_pk'])
+            )
             like.delete()
-            return Response({'message': 'post like delete'}, status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {'message': 'post like delete'},
+                status=status.HTTP_204_NO_CONTENT
+            )
         except CommentLike.DoesNotExist:
             data = {
                 'comment': Comment.objects.get(pk=self.kwargs['nested_2_pk']).pk,
