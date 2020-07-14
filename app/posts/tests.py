@@ -106,6 +106,11 @@ class CommentTest(APITestCase):
     def test_list(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for i in response.data:
+            print(i['content'])
+            print(i['id'])
+
+        self.fail()
 
     def test_create(self):
         self.client.force_authenticate(self.user)
@@ -117,7 +122,7 @@ class CommentTest(APITestCase):
         }
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.fail()
+        # self.fail()
 
     def test_update(self):
         data = {

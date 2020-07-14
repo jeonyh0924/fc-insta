@@ -5,7 +5,7 @@ from rest_framework_nested import routers
 from members.views import UserModelViewAPI, UserProfileView
 from posts.views import PostsAPIView, CommentAPIView, PostLikeAPIView, CommentLikeAPIView
 
-router = routers.SimpleRouter(trailing_slash=False)
+router = routers.SimpleRouter(trailing_slash=True)
 router.register('users', UserModelViewAPI)
 router.register('posts', PostsAPIView)
 # router.register('like', PostLikeAPIView)

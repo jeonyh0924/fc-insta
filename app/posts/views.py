@@ -7,7 +7,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from posts.models import Post, Comment, PostLike, CommentLike
 from posts.serializers import PostSerializers, CommentSerializers, CommentUpdateSerializers, PostUpdateSerializers, \
-    PostLikeSerializers, CommentLikeSerializers
+    PostLikeSerializers, CommentLikeSerializers, CommentListSerializers
 
 User = get_user_model()
 
@@ -35,6 +35,8 @@ class CommentAPIView(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'partial_update':
             return CommentUpdateSerializers
+        elif self.action == 'list':
+            return CommentListSerializers
         else:
             return super().get_serializer_class()
 

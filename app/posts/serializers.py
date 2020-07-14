@@ -4,6 +4,33 @@ from members.serializers import UserSerializers
 from posts.models import Post, Comment, PostLike, CommentLike, PostImage
 
 
+class CommentSerializers(serializers.ModelSerializer):
+    user = UserSerializers(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'content', 'post', 'user')
+
+
+class CommentListSerializers(serializers.ModelSerializer):
+    # parent = CommentSerializers()
+    # recomment = serializers.SerializerMethodField()
+    reco = CommentSerializers(source='child', many=True)
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'content', 'post', 'user', 'parent', 'reco',)
+
+    # def get_recomment(self, obj):
+    #     pass
+
+
+class CommentUpdateSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ('id', 'content',)
+
+
 class PostImageSerializers(serializers.ModelSerializer):
     class Meta:
         model = PostImage
@@ -12,10 +39,11 @@ class PostImageSerializers(serializers.ModelSerializer):
 
 class PostSerializers(serializers.ModelSerializer):
     images = PostImageSerializers(many=True, read_only=True, )
+    comment = CommentSerializers(many=True, read_only=True)
 
     class Meta:
         model = Post
-        fields = ('id', 'title', 'content', 'user', 'images')
+        fields = ('id', 'title', 'content', 'user', 'images', 'comment')
 
     def create(self, validated_data):
         posts_image = self.context['request'].FILES
@@ -29,20 +57,6 @@ class PostUpdateSerializers(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ('id', 'title', 'content')
-
-
-class CommentSerializers(serializers.ModelSerializer):
-    user = UserSerializers(read_only=True)
-
-    class Meta:
-        model = Comment
-        fields = ('id', 'content', 'post', 'user')
-
-
-class CommentUpdateSerializers(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
-        fields = ('id', 'content',)
 
 
 class PostLikeSerializers(serializers.ModelSerializer):
