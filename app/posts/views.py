@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -36,6 +37,18 @@ class CommentAPIView(viewsets.ModelViewSet):
             return CommentUpdateSerializers
         else:
             return super().get_serializer_class()
+
+    def create(self, request, *args, **kwargs):
+        try:
+            self.request.data.get('parent')
+            model = self.queryset.model
+            ins = model.objects.get(pk=self.request.data['parent'])
+            # parent 의 부모가 있다면, 올바르지 않은 생성 - 대대댓글이 된다.
+            if ins.parent:
+                # raise Exception('depth of comments is only level 2')
+                return Response({'message': 'depth of comments is only level 2'}, status=status.HTTP_400_BAD_REQUEST)
+        except MultiValueDictKeyError:
+            return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.save(
