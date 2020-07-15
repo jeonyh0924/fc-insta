@@ -68,7 +68,7 @@ DB_PORT=5432
 ### MTPP [튜토리얼](https://django-mptt.readthedocs.io/en/latest/tutorial.html)
 > pip intall django-mtpp
 > installed apps 추가 ( 'mtpp')
-
+> 대댓글 시리얼라지어 https://stackoverflow.com/questions/13376894/django-rest-framework-nested-self-referential-objects
 
 
 ### 내가 팔로우를 한 유저가 생성한 블로그 게시글
