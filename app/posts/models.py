@@ -18,7 +18,7 @@ class Post(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        null=True,
+        # null=True,
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -57,7 +57,8 @@ class Comment(MPTTModel):
     post = models.ForeignKey(
         'Post',
         on_delete=models.CASCADE,
-        # null=True,
+        related_name='comment',
+        null=True
     )
     user = models.ForeignKey(
         User,

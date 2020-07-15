@@ -23,6 +23,18 @@ class PostTest(APITestCase):
         self.url = f'/users/{self.user.id}/posts'
 
     def test_list(self):
+        for i in range(3):
+            Comment.objects.create(
+                user=self.user,
+                post=self.post,
+                content='content',
+            )
+        self.recomment = Comment.objects.create(
+            user=self.user,
+            parent=Comment.objects.last(),
+            content='recomment',
+        )
+
         self.client.force_authenticate(self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -43,18 +55,17 @@ class PostTest(APITestCase):
             'title': 'testPost',
             'content': 'test Content',
             'image': test_image,
+            'user': self.user.id
         }
         self.client.force_authenticate(self.user)
-        response = self.client.post(self.url, data=data)
-        post = Post.objects.last()
-        # data = post.postimage_set.all()
+        response = self.client.post(f'/users/{self.user.id}/posts', data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.fail()
 
     def test_retrieve(self):
         url = self.url + f'/{self.post.id}'
         response = self.client.get(url)
-        self.assertEqual(self.post.user.id, response.data['user'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.post.user.email, response.data['user']['email'])
         self.assertEqual(self.post.title, response.data['title'])
 
     def test_update(self):
@@ -87,6 +98,7 @@ class CommentTest(APITestCase):
         self.post = Post.objects.create(
             title='test Post title',
             content='test Content title',
+            user=self.user
         )
         for i in range(3):
             self.comment = Comment.objects.create(
@@ -106,18 +118,35 @@ class CommentTest(APITestCase):
     def test_list(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for i in response.data:
+            print(i['content'])
+            print(i['id'])
 
     def test_create(self):
+        """
+        댓글 작성
+        - parent와 post는 공존 할 수 없다. ( comment Serializers 에 의해)
+        - parent 만 오는 주소와 /comment/<comment:pk>
+        - post 만 오는 주소를 /posts/<post:pk>
+        - 구분을 지어야 한다.
+        - 둘 다 통합 처리하면 클라이언트에서 알아보기 힘듬
+        """
+
+        # 게시글의 댓글을 생성
         self.client.force_authenticate(self.user)
         data = {
             'content': 'test create content',
             'user': self.user.id,
-            'post': self.post.id,
-            # 'parent': self.recomment.id
         }
-        response = self.client.post(self.url, data=data)
+        url = f'/posts/{self.post.id}/comments'
+        response = self.client.post(url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.fail()
+
+        # # 게시글 댓글에 댓글을 생성.
+        url = f'/comments/{self.comment.id}/reply'
+
+        response = self.client.post(url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_update(self):
         data = {
@@ -157,6 +186,7 @@ class PostLikeTest(APITestCase):
         # 좋아요가 눌리지 않은 경우 - 생성 요청
         self.client.force_authenticate(self.user)
         response = self.client.post(self.url + f'/toggle')
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['post'], self.post2.pk)
         self.assertEqual(response.data['user'], self.user.pk)

@@ -68,4 +68,15 @@ DB_PORT=5432
 ### MTPP [튜토리얼](https://django-mptt.readthedocs.io/en/latest/tutorial.html)
 > pip intall django-mtpp
 > installed apps 추가 ( 'mtpp')
-> 
+
+
+
+### 내가 팔로우를 한 유저가 생성한 블로그 게시글
+```python
+qs = User.objects.filter(to_users_relation__from_user=u1).values_list('id').distinct()
+
+Post.objects.filter(user_id__in=qs)
+
+출처 : https://stackoverflow.com/questions/27519326/making-a-complicated-query-in-django-all-my-follows-posts
+```
+

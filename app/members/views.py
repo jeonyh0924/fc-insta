@@ -81,6 +81,7 @@ class UserModelViewAPI(viewsets.ModelViewSet):
 
     @action(detail=False)
     def follow(self, request):
+        # 내가 팔로우를 건 유저
         users = request.user.follow
         serializer = UserSerializers(users, many=True, )
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -128,13 +129,12 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         relation.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
     @action(detail=False, methods=['post', 'delete', 'patch'])
     def create_delete_Relation(self, request):
         """
         :param request: relation type 이 f면 팔로우 해주고  b면 블락건다.
-
         1. 이미 팔로우 한 유저가 블락을 걸면 이미 존재하는 릴레이션 지우고 사용자의 요청에 맞게 해준다.
-
         """
         to_user = User.objects.get(pk=request.query_params.get('toUser'))
         relation_type = request.query_params.get('type')
@@ -173,7 +173,7 @@ class UserProfileView(mixins.UpdateModelMixin, mixins.RetrieveModelMixin, Generi
 
     def get_queryset(self):
         if self.action in ['retrieve', 'partial_update']:
-            qs = Profile.objects.filter(pk=self.kwargs['nested_1_pk'])
+            qs = Profile.objects.filter(pk=self.kwargs['pk'])
         elif self.action == 'list':
             qs = Profile.objects.filter(user=self.request.user)
         return qs
