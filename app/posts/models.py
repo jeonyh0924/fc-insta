@@ -25,10 +25,6 @@ class Post(models.Model):
     )
     like_count = models.IntegerField(default=0)
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        return super().save()
-
 
 class PostImage(models.Model):
     post = models.ForeignKey(
@@ -96,6 +92,12 @@ class PostLike(models.Model):
         post.save()
         return super().save()
 
+    def delete(self, using=None, keep_parents=False):
+        post = Post.objects.get(id=self.post.id)
+        post.like_count = F('like_count') - 1
+        post.save()
+        return super().delete()
+
 
 class CommentLike(models.Model):
     user = models.ForeignKey(
@@ -120,3 +122,8 @@ class CommentLike(models.Model):
         comment = Comment.objects.filter(id=self.comment_id)
         comment.update(like_count=F('like_count') + 1)
         return super().save()
+
+    def delete(self, using=None, keep_parents=False):
+        comment = Comment.objects.filter(id=self.comment_id)
+        comment.update(like_count=F('like_count') - 1)
+        return super().delete()
