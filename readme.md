@@ -76,5 +76,7 @@ DB_PORT=5432
 qs = User.objects.filter(to_users_relation__from_user=u1).values_list('id').distinct()
 
 Post.objects.filter(user_id__in=qs)
+
+출처 : https://stackoverflow.com/questions/27519326/making-a-complicated-query-in-django-all-my-follows-posts
 ```
 

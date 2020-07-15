@@ -12,12 +12,18 @@ class CommentSerializers(serializers.ModelSerializer):
         fields = ('id', 'content', 'post', 'user')
 
 
+class RecursiveField(serializers.Serializer):
+    def to_representation(self, value):
+        serializer = self.parent.parent.__class__(value, context=self.context)
+        return serializer.data
+
+
 class CommentListSerializers(serializers.ModelSerializer):
-    reco = CommentSerializers(source='child', many=True)
+    child = RecursiveField(many=True, required=False)
 
     class Meta:
         model = Comment
-        fields = ('id', 'content', 'post', 'user', 'parent', 'reco',)
+        fields = ('id', 'content', 'post', 'user', 'parent', 'child')
 
 
 class CommentUpdateSerializers(serializers.ModelSerializer):
@@ -34,7 +40,7 @@ class PostImageSerializers(serializers.ModelSerializer):
 
 class PostSerializers(serializers.ModelSerializer):
     images = PostImageSerializers(many=True, read_only=True, )
-    comment = CommentSerializers(many=True, read_only=True)
+    comment = CommentListSerializers(many=True, read_only=True, )
     user = UserSerializers(read_only=True, )
 
     class Meta:

@@ -129,6 +129,7 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         relation.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
     @action(detail=False, methods=['post', 'delete', 'patch'])
     def create_delete_Relation(self, request):
         """
@@ -172,7 +173,7 @@ class UserProfileView(mixins.UpdateModelMixin, mixins.RetrieveModelMixin, Generi
 
     def get_queryset(self):
         if self.action in ['retrieve', 'partial_update']:
-            qs = Profile.objects.filter(pk=self.kwargs['nested_1_pk'])
+            qs = Profile.objects.filter(pk=self.kwargs['pk'])
         elif self.action == 'list':
             qs = Profile.objects.filter(user=self.request.user)
         return qs
