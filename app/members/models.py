@@ -4,8 +4,10 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 
-
 # User = get_user_model()
+from django.db.models import F
+from rest_framework.generics import get_object_or_404
+
 
 class MyUserManager(BaseUserManager):
     def create_user(self, email, password=None):
@@ -58,6 +60,9 @@ class User(AbstractBaseUser):
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'
+
+    def __str__(self):
+        return f'{self.pk}'
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
@@ -143,6 +148,35 @@ class Relations(models.Model):
             ('to_user', 'from_user'),
         )
 
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        """
+            릴레이션이 생성이 될 때, F면 +1 B은 영향을 주지 않는다.
+                    삭제가 될 때 F면 -1 B은 영향을 주지 않는다.
+            """
+        from_user = get_object_or_404(User, pk=self.from_user_id)
+        to_user = get_object_or_404(User, pk=self.to_user_id)
+
+        if self.related_type == 'f':
+            # 팔로우를 건 유저의 팔로윙 카운트 증가.
+            from_user.profile.following_count = F('following_count') + 1
+            to_user.profile.follower_count = F('follower_count') + 1
+            from_user.profile.save()
+            to_user.profile.save()
+        return super().save(force_insert=False, force_update=False, using=None, update_fields=None)
+
+    def delete(self, using=None, keep_parents=False):
+        from_user = get_object_or_404(User, pk=self.from_user_id)
+        to_user = get_object_or_404(User, pk=self.to_user_id)
+
+        if self.related_type == 'f':
+            # 팔로우를 건 유저의 팔로윙 카운트 증가.
+            from_user.profile.following_count = F('following_count') - 1
+            to_user.profile.follower_count = F('follower_count') - 1
+            from_user.profile.save()
+            to_user.profile.save()
+        return super().delete(using=None, keep_parents=False)
+
 
 class Profile(models.Model):
     user = models.OneToOneField(
@@ -156,3 +190,7 @@ class Profile(models.Model):
         max_length=100,
         null=True,
     )
+    # 나를 팔로우 하고 있는 사람의 수
+    follower_count = models.IntegerField(default=0)
+    # 내가 팔로우를 하고 있는 사람의 수
+    following_count = models.IntegerField(default=0)

@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from config import settings
+from members.models import Profile
 from posts.models import Post, Comment, PostLike
 
 User = get_user_model()
@@ -15,6 +16,7 @@ class PostTest(APITestCase):
             email='testUser@test.com',
             password='1111'
         )
+        Profile.objects.create(user=self.user, username='TestUser')
         for i in range(2):
             self.post = Post.objects.create(
                 user=self.user,
@@ -36,7 +38,7 @@ class PostTest(APITestCase):
         )
 
         self.client.force_authenticate(self.user)
-        response = self.client.get(self.url)
+        response = self.client.get(f'/posts')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_create(self):

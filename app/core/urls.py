@@ -2,10 +2,11 @@ from django.conf.urls import url
 from django.urls import include
 from rest_framework_nested import routers
 
-from members.views import UserModelViewAPI, UserProfileView
+from members.views import UserModelViewAPI, UserProfileView, RelationAPIView
 from posts.views import PostsAPIView, CommentAPIView, PostLikeAPIView, CommentLikeAPIView
 
-router = routers.SimpleRouter(trailing_slash=True)
+router = routers.SimpleRouter(trailing_slash=False)
+
 router.register('users', UserModelViewAPI)
 router.register('posts', PostsAPIView)
 router.register('comments', CommentAPIView)
@@ -16,6 +17,8 @@ users_router = routers.NestedSimpleRouter(router, 'users', lookup='user')
 users_router.register('posts', PostsAPIView)
 # /users/profile
 users_router.register('profile', UserProfileView)
+
+users_router.register('relation', RelationAPIView)
 
 # /users/posts
 posts_router = routers.NestedSimpleRouter(users_router, 'posts', lookup='post')
