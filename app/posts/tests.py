@@ -16,7 +16,6 @@ class PostTest(APITestCase):
             email='testUser@test.com',
             password='1111'
         )
-        Profile.objects.create(user=self.user, username='TestUser')
         for i in range(2):
             self.post = Post.objects.create(
                 user=self.user,

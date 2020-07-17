@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
@@ -64,6 +64,20 @@ class User(AbstractBaseUser):
     def __str__(self):
         return f'{self.pk}'
 
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super().save(*args, **kwargs)
+            email, domain = self.email.split('@')
+            profile = Profile.objects.create(
+                user=self,
+                username=email
+            )
+        else:
+            super().save(*args, **kwargs)
+        if self._password is not None:
+            password_validation.password_changed(self._password, self)
+            self._password = None
+
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
         # Simplest possible answer: Yes, always
@@ -127,12 +141,14 @@ class Relations(models.Model):
         on_delete=models.CASCADE,
         related_name='from_user_relations',
         related_query_name='from_users_relation',
+        null=True,
     )
     to_user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='to_user_relations',
         related_query_name='to_users_relation',
+        null=True,
     )
     related_type = models.CharField(
         choices=CHOICE_RELATIONS_TYPE,
@@ -145,7 +161,6 @@ class Relations(models.Model):
     class Meta:
         unique_together = (
             ('from_user', 'to_user'),
-            ('to_user', 'from_user'),
         )
 
     def save(self, force_insert=False, force_update=False, using=None,

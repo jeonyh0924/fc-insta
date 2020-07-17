@@ -18,15 +18,6 @@ class UserTest(APITestCase):
         self.user.save()
         self.user2 = User.objects.create_user(email='test2@email', password='1111')
 
-        self.profile = Profile.objects.create(
-            user=self.user,
-            username='testUser'
-        )
-        self.profile2 = Profile.objects.create(
-            user=self.user2,
-            username='testUser'
-        )
-
     def test_list(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -136,12 +127,7 @@ class UserTest(APITestCase):
     def test_profile_retrieve(self):
         # 특정 프로필에 조회를 할 경우
         self.client.force_authenticate(self.user)
-        url = self.url + f'/{self.user.id}/profile/{self.profile.id}'
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # 자기 자신의 프로필에 요청을 할 경우
-        self.client.force_authenticate(self.user2)
-        url = self.url + f'/{self.user2.id}/profile'
+        url = self.url + f'/{self.user.id}/profile/{self.user.id}'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -178,7 +164,7 @@ class UserTest(APITestCase):
             email='u3@u3.com',
             password='1111'
         )
-        u3_profile = Profile.objects.create(user=user3, username='user3')
+
         Relations.objects.create(from_user=self.user, to_user=self.user2, related_type='f')
         Relations.objects.create(from_user=self.user, to_user=user3, related_type='f')
         self.client.force_authenticate(self.user)
@@ -189,7 +175,6 @@ class UserTest(APITestCase):
             email='user3@test.com',
             password='1111'
         )
-        Profile.objects.create(user=user3, username='testUser')
         Relations.objects.create(from_user=user3, to_user=self.user, related_type='f')
         self.client.force_authenticate(self.user)
         response = self.client.get('/users/follower/')
@@ -197,8 +182,6 @@ class UserTest(APITestCase):
     def test_make_relation(self):
         self.client.force_authenticate(self.user)
         data = {
-            'from_user': self.user.id,
-            'to_user': self.user2.id,
             'related_type': 'f',
         }
         response = self.client.post(f'/users/{self.user2.id}/relation', data=data)
@@ -207,3 +190,44 @@ class UserTest(APITestCase):
         # 동일한 relation을 생생 시키려 한다면
         response = self.client.post(f'/users/{self.user2.id}/relation', data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # 동일한 유저의 relation 생성 불가.
+        data = {
+            'from_user': self.user.id,
+            'to_user': self.user.id,
+            'related_type': 'f',
+        }
+        response = self.client.post(f'/users/{self.user.id}/relation', data=data)
+
+
+class RelationTest(APITestCase):
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(
+            email='test@test.com',
+            password='1111',
+        )
+        data = {
+            'email': 'testUser@test.com',
+            'password': '1111',
+            'username': 'username'
+        }
+        response = self.client.post('/users', data=data)
+        self.r = Relations.objects.create(from_user=User.objects.first(),
+                                          to_user=User.objects.get(pk=2),
+                                          related_type='f'
+                                          )
+
+    def test_update(self):
+        self.client.force_authenticate(self.user)
+        user2 = User.objects.create_user(
+            email='testUser2@test.com',
+            password='1111'
+        )
+        data = {
+            'related_type': 'f'
+        }
+        response = self.client.post(f'/users/{user2.id}/relation', data=data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        r = Relations.objects.last()
+        response = self.client.patch(f'/relation/{self.r.pk}', {"related_type": "b"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -10,7 +10,7 @@ router = routers.SimpleRouter(trailing_slash=False)
 router.register('users', UserModelViewAPI)
 router.register('posts', PostsAPIView)
 router.register('comments', CommentAPIView)
-
+router.register('relation', RelationAPIView)
 # /users/
 users_router = routers.NestedSimpleRouter(router, 'users', lookup='user')
 # /users/posts
