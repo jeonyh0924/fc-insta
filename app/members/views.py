@@ -12,7 +12,7 @@ from members.permissions import IsOwnerOrReadOnly
 from members.serializers import UserSerializers, RelationSerializers, UserCreateSerializer, ProfileUpdateSerializer, \
     ChangePassSerializers, ProfileDetailSerializers, UserSimpleSerializers
 from posts.models import Post
-from posts.serializers import PostProfileSerializers
+from posts.serializers import PostProfileSerializers, PostSerializers
 
 User = get_user_model()
 
@@ -39,7 +39,7 @@ class UserModelViewAPI(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(
-            context={'request': self.request}
+            context=self.request
         )
 
     @action(detail=True, methods=['post'], url_path='change-password')
@@ -53,19 +53,20 @@ class UserModelViewAPI(viewsets.ModelViewSet):
 
     @action(detail=False)
     def page(self, request):
+        # 내가 팔로우를 건 유저들의 게시글
         qs = User.objects.filter(to_users_relation__from_user=request.user).values_list('id').distinct()
 
         qs = User.objects.filter(to_users_relation__from_user=request.user).filter(
             to_users_relation__related_type='f').values_list('id').distinct()
         posts = Post.objects.filter(user_id__in=qs)
-        serializers = PostProfileSerializers(posts, many=True)
+        serializers = PostProfileSerializers(posts, many=True, context=request)
         return Response(serializers.data, status=status.HTTP_200_OK)
 
     @action(detail=False, )
     def myProfile(self, request):
         # 내가 쓴 게시글
         posts = Post.objects.filter(user=request.user)
-        serializers = PostProfileSerializers(posts, many=True)
+        serializers = PostSerializers(posts, many=True, context=request)
         return Response(serializers.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'])

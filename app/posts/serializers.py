@@ -59,7 +59,7 @@ class PostUpdateSerializers(serializers.ModelSerializer):
 
 class PostProfileSerializers(serializers.ModelSerializer):
     images = PostImageSerializers(many=True, )
-    user = UserSimpleSerializers()
+    user = UserSerializers()
     comment = CommentSerializers(many=True, read_only=True, )
 
     class Meta:

@@ -29,6 +29,7 @@ class UserTest(APITestCase):
             'username': 'testUser'
         }
         response = self.client.post(self.url, data=data)
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = response.data
         self.assertEqual(response_data['email'], data['email'])
@@ -111,6 +112,7 @@ class UserTest(APITestCase):
 
         self.client.force_authenticate(self.user)
         response = self.client.get('/users/page')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_myPost(self):
         self.client.force_authenticate(self.user)
@@ -121,8 +123,10 @@ class UserTest(APITestCase):
         )
         co = Comment.objects.create(post=post, user=self.user, content='comment')
         co2 = Comment.objects.create(parent=co, user=self.user, content='comment2')
-        # Comment.objects.create(parent=co2, user=self.user, content='comment3')
+        # Comment.objects.create(parent=co2, user=self.user, cont
+        # ent='comment3')
         response = self.client.get('/users/myProfile')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_profile_retrieve(self):
         # 특정 프로필에 조회를 할 경우
@@ -168,7 +172,8 @@ class UserTest(APITestCase):
         Relations.objects.create(from_user=self.user, to_user=self.user2, related_type='f')
         Relations.objects.create(from_user=self.user, to_user=user3, related_type='f')
         self.client.force_authenticate(self.user)
-        response = self.client.get('/users/follow/')
+        response = self.client.get('/users/follow')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_follower_user(self):
         user3 = User.objects.create_user(
