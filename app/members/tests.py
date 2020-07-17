@@ -3,7 +3,8 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-from members.models import Profile
+from members.models import Profile, Relations
+from posts.models import Post, Comment
 
 User = get_user_model()
 
@@ -46,7 +47,7 @@ class UserTest(APITestCase):
         self.assertTrue(user.profile)
 
     def test_retrieve(self):
-        url = self.url + f'/{self.user.id}'
+        url = f'/users/{self.user.id}'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.user.email, response.data['email'])
@@ -56,7 +57,7 @@ class UserTest(APITestCase):
         data = {
             'password': '1111',
         }
-        url = self.url + f'/{self.user.id}'
+        url = f'/users/{self.user.id}'
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -105,8 +106,32 @@ class UserTest(APITestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertIsNone(token.key)
-
         self.assertEqual(Token.objects.filter(user=self.user).first(), None)
+
+    def test_page(self):
+        Relations.objects.create(from_user=self.user, to_user=self.user2, related_type='f')
+        post = Post.objects.create(user=self.user2, title='title', content='content')
+        Comment.objects.create(post=post, user=self.user2, content='content')
+        user = User.objects.create_user(email='BlockUser@test.com', password='1111')
+
+        Relations.objects.create(from_user=self.user, to_user=user, related_type='b')
+        post = Post.objects.create(user=user, title='title2', content='content2')
+        Comment.objects.create(post=post, user=user, content='comment')
+
+        self.client.force_authenticate(self.user)
+        response = self.client.get('/users/page')
+
+    def test_myPost(self):
+        self.client.force_authenticate(self.user)
+        post = Post.objects.create(
+            title='User Post',
+            content='content',
+            user=self.user
+        )
+        co = Comment.objects.create(post=post, user=self.user, content='comment')
+        co2 = Comment.objects.create(parent=co, user=self.user, content='comment2')
+        # Comment.objects.create(parent=co2, user=self.user, content='comment3')
+        response = self.client.get('/users/myProfile')
 
     def test_profile_retrieve(self):
         # 특정 프로필에 조회를 할 경우
@@ -121,7 +146,6 @@ class UserTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_profile_update(self):
-        # Profile.objects.create(user=self.user, username='testUser')
         data = {
             'username': 'updateUser',
             'introduce': 'update introduce'
@@ -148,3 +172,38 @@ class UserTest(APITestCase):
         }
         response = self.client.post(url, data=data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_follow_user(self):
+        user3 = User.objects.create_user(
+            email='u3@u3.com',
+            password='1111'
+        )
+        u3_profile = Profile.objects.create(user=user3, username='user3')
+        Relations.objects.create(from_user=self.user, to_user=self.user2, related_type='f')
+        Relations.objects.create(from_user=self.user, to_user=user3, related_type='f')
+        self.client.force_authenticate(self.user)
+        response = self.client.get('/users/follow/')
+
+    def test_follower_user(self):
+        user3 = User.objects.create_user(
+            email='user3@test.com',
+            password='1111'
+        )
+        Profile.objects.create(user=user3, username='testUser')
+        Relations.objects.create(from_user=user3, to_user=self.user, related_type='f')
+        self.client.force_authenticate(self.user)
+        response = self.client.get('/users/follower/')
+
+    def test_make_relation(self):
+        self.client.force_authenticate(self.user)
+        data = {
+            'from_user': self.user.id,
+            'to_user': self.user2.id,
+            'related_type': 'f',
+        }
+        response = self.client.post(f'/users/{self.user2.id}/relation', data=data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # 동일한 relation을 생생 시키려 한다면
+        response = self.client.post(f'/users/{self.user2.id}/relation', data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

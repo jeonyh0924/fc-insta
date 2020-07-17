@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from members.serializers import UserSerializers
+from members.serializers import UserSerializers, UserSimpleSerializers
 from posts.models import Post, Comment, PostLike, CommentLike, PostImage
 
 
@@ -31,13 +31,17 @@ class PostImageSerializers(serializers.ModelSerializer):
 
 
 class PostSerializers(serializers.ModelSerializer):
+    """
+    전체 게시글에 대해서 유저
+    """
     images = PostImageSerializers(many=True, read_only=True, )
     comment = CommentSerializers(many=True, read_only=True, )
-    user = UserSerializers(read_only=True, )
+    user = UserSimpleSerializers(read_only=True, )
 
     class Meta:
         model = Post
         fields = ('id', 'title', 'content', 'user', 'images', 'comment', 'like_count')
+        read_only_fields = ('like_count',)
 
     def create(self, validated_data):
         posts_image = self.context['request'].FILES
@@ -51,6 +55,16 @@ class PostUpdateSerializers(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ('id', 'title', 'content')
+
+
+class PostProfileSerializers(serializers.ModelSerializer):
+    images = PostImageSerializers(many=True, )
+    user = UserSimpleSerializers()
+    comment = CommentSerializers(many=True, read_only=True, )
+
+    class Meta:
+        model = Post
+        fields = ('id', 'user', 'title', 'content', 'created_at', 'like_count', 'images', 'comment',)
 
 
 class PostLikeSerializers(serializers.ModelSerializer):

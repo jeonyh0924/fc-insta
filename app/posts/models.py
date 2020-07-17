@@ -54,7 +54,8 @@ class Comment(MPTTModel):
         'Post',
         on_delete=models.CASCADE,
         related_name='comment',
-        null=True
+        null=True,
+        blank=True,
     )
     user = models.ForeignKey(
         User,

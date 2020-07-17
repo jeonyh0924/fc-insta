@@ -6,6 +6,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from members.serializers import ProfileDetailSerializers
 from posts.models import Post, Comment, PostLike, CommentLike
 from posts.serializers import PostSerializers, CommentUpdateSerializers, PostUpdateSerializers, PostLikeSerializers, \
     CommentLikeSerializers, CommentSerializers
@@ -68,11 +69,6 @@ class CommentAPIView(viewsets.ModelViewSet):
             )
         else:
             raise serializers.ValidationError('대댓글만 작성 가능')
-
-        # serializer.save(
-        #     user=self.request.user,
-        #     post=Post.objects.get(pk=self.kwargs['post_pk'])
-        # )
 
 
 class PostLikeAPIView(GenericViewSet):

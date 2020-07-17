@@ -23,7 +23,7 @@ from config import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('members.urls')),
+    path('', include('core.urls')),
     # path('posts/', include('posts.urls')),
 
 ]
