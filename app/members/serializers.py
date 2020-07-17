@@ -21,7 +21,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         context = validated_data.pop('context')
-        username = context['request'].data.get('username')
+        username = context.data.get('username')
 
         user = User.objects.create_user(**validated_data)
         user.profile.username = username
@@ -38,7 +38,7 @@ class ProfileSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_relation(self, obj):
-        relation = Relations.objects.get(from_user=self.context.request.user, to_user=obj.user_id)
+        relation = Relations.objects.get(from_user=self.context.user, to_user=obj.user_id)
         related_type = relation.related_type
         data = {
             "relation_id": relation.id,
