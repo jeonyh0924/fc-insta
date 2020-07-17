@@ -51,8 +51,19 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         serializer.save()
         return Response(status=status.HTTP_200_OK)
 
+    @action(detail=False)
+    def page(self, request):
+        qs = User.objects.filter(to_users_relation__from_user=request.user).values_list('id').distinct()
+
+        qs = User.objects.filter(to_users_relation__from_user=request.user).filter(
+            to_users_relation__related_type='f').values_list('id').distinct()
+        posts = Post.objects.filter(user_id__in=qs)
+        serializers = PostProfileSerializers(posts, many=True)
+        return Response(serializers.data, status=status.HTTP_200_OK)
+
     @action(detail=False, )
     def myProfile(self, request):
+        # 내가 쓴 게시글
         posts = Post.objects.filter(user=request.user)
         serializers = PostProfileSerializers(posts, many=True)
         return Response(serializers.data, status=status.HTTP_200_OK)

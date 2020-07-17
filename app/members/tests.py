@@ -108,6 +108,19 @@ class UserTest(APITestCase):
         self.assertIsNone(token.key)
         self.assertEqual(Token.objects.filter(user=self.user).first(), None)
 
+    def test_page(self):
+        Relations.objects.create(from_user=self.user, to_user=self.user2, related_type='f')
+        post = Post.objects.create(user=self.user2, title='title', content='content')
+        Comment.objects.create(post=post, user=self.user2, content='content')
+        user = User.objects.create_user(email='BlockUser@test.com', password='1111')
+
+        Relations.objects.create(from_user=self.user, to_user=user, related_type='b')
+        post = Post.objects.create(user=user, title='title2', content='content2')
+        Comment.objects.create(post=post, user=user, content='comment')
+
+        self.client.force_authenticate(self.user)
+        response = self.client.get('/users/page')
+
     def test_myPost(self):
         self.client.force_authenticate(self.user)
         post = Post.objects.create(
