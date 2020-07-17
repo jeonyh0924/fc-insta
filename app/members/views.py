@@ -188,7 +188,9 @@ class UserModelViewAPI(viewsets.ModelViewSet):
 #         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class UserProfileView(mixins.UpdateModelMixin, mixins.RetrieveModelMixin, GenericViewSet, mixins.ListModelMixin, ):
+class UserProfileView(mixins.UpdateModelMixin,
+                      mixins.RetrieveModelMixin,
+                      GenericViewSet, ):
     queryset = Profile.objects.all()
     serializer_class = ProfileUpdateSerializer
 
@@ -216,4 +218,17 @@ class RelationAPIView(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins
     """
 
     def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+        to_user = User.objects.get(pk=kwargs['user_pk'])
+        data = {
+            "from_user": request.user.id,
+            "to_user": to_user.id,
+            "related_type": request.data['related_type']
+        }
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_update(self, serializer):
+        serializer.save()
