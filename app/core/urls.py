@@ -4,6 +4,7 @@ from rest_framework_nested import routers
 
 from members.views import UserModelViewAPI, UserProfileView, RelationAPIView
 from posts.views import PostsAPIView, CommentAPIView, PostLikeAPIView, CommentLikeAPIView
+from stories.views import StoryAPIView
 
 router = routers.SimpleRouter(trailing_slash=False)
 
@@ -11,14 +12,17 @@ router.register('users', UserModelViewAPI)
 router.register('posts', PostsAPIView)
 router.register('comments', CommentAPIView)
 router.register('relation', RelationAPIView)
+router.register('story', StoryAPIView)
 # /users/
 users_router = routers.NestedSimpleRouter(router, 'users', lookup='user')
 # /users/posts
 users_router.register('posts', PostsAPIView)
 # /users/profile
 users_router.register('profile', UserProfileView)
-
+# /users/relation
 users_router.register('relation', RelationAPIView)
+# /users/story
+users_router.register('story', StoryAPIView)
 
 # /users/posts
 posts_router = routers.NestedSimpleRouter(users_router, 'posts', lookup='post')
