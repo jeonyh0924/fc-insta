@@ -20,6 +20,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'posts',
     'members',
+    'stories',
 
     'django.contrib.admin',
     'django.contrib.auth',
