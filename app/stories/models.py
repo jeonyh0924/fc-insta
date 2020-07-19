@@ -9,7 +9,7 @@ def story_video(instance, filename):
 
 
 def story_image(instance, filename):
-    return f'storyImage/{instance.user.id}/{filename}'
+    return f'storyImage/{instance.story.user_id}/{filename}'
 
 
 # Create your models here.
@@ -26,6 +26,9 @@ class Story(models.Model):
     video = models.FileField(
         upload_to=story_video,
         null=True,
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
     )
 
 
