@@ -41,3 +41,15 @@ class StoryImage(models.Model):
     image = models.ImageField(
         upload_to=story_image,
     )
+
+
+class StoryCheck(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+    story = models.ForeignKey(
+        Story,
+        on_delete=models.CASCADE,
+        related_name='check_set',
+    )
