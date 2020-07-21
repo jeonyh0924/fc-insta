@@ -2,12 +2,11 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-from django.shortcuts import render
 
-# Create your views here.
 from django.utils import timezone
 from rest_framework.viewsets import ModelViewSet
 
+from core.paginations import CustomPagination
 from stories.models import Story
 from stories.serializers import StorySerializers, StoryRetrieveSerializers
 
@@ -17,6 +16,7 @@ User = get_user_model()
 class StoryAPIView(ModelViewSet):
     queryset = Story.objects.all()
     serializer_class = StorySerializers
+    pagination_class = CustomPagination
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

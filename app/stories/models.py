@@ -9,7 +9,7 @@ def story_video(instance, filename):
 
 
 def story_image(instance, filename):
-    return f'storyImage/{instance.story.user_id}/{filename}'
+    return f'storyImage/{instance.user_id}/{filename}'
 
 
 # Create your models here.
@@ -27,19 +27,12 @@ class Story(models.Model):
         upload_to=story_video,
         null=True,
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-    )
-
-
-class StoryImage(models.Model):
-    story = models.ForeignKey(
-        Story,
-        on_delete=models.CASCADE,
-        related_name='image',
-    )
     image = models.ImageField(
         upload_to=story_image,
+        null=True,
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
     )
 
 
