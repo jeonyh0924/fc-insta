@@ -4,12 +4,12 @@ from rest_framework import viewsets, mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from members.serializers import ProfileDetailSerializers
-from posts.models import Post, Comment, PostLike, CommentLike
+from posts.models import Post, Comment, PostLike, CommentLike, Tag
 from posts.serializers import PostSerializers, CommentUpdateSerializers, PostUpdateSerializers, PostLikeSerializers, \
-    CommentLikeSerializers, CommentSerializers
+    CommentLikeSerializers, CommentSerializers, TagSerializers
 
 User = get_user_model()
 
@@ -135,3 +135,16 @@ class CommentLikeAPIView(mixins.CreateModelMixin, mixins.DestroyModelMixin, Gene
             serializers.is_valid(raise_exception=True)
             serializers.save()
             return Response(serializers.data, status=status.HTTP_201_CREATED)
+
+
+class TagAPIView(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializers
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = Post.objects.filter(tags__id=kwargs['pk'])
+        serializer = PostSerializers(instance, many=True)
+        return Response(serializer.data)
