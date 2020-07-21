@@ -13,7 +13,7 @@ def post_image_path(instance, filename):
 
 
 class Post(models.Model):
-    title = models.CharField('글 제목', max_length=20, )
+    title = models.CharField('글 제목', max_length=50, )
     content = models.CharField('글 내용', max_length=50, null=True, )
     user = models.ForeignKey(
         User,
@@ -23,6 +23,11 @@ class Post(models.Model):
         auto_now_add=True,
     )
     like_count = models.IntegerField(default=0)
+    tags = models.ManyToManyField(
+        'Tag',
+        null=True,
+        related_query_name='posts',
+    )
 
 
 class PostImage(models.Model):
@@ -126,3 +131,7 @@ class CommentLike(models.Model):
         comment = Comment.objects.filter(id=self.comment_id)
         comment.update(like_count=F('like_count') - 1)
         return super().delete()
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=20, unique=True, )

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from members.serializers import UserSerializers, UserSimpleSerializers
-from posts.models import Post, Comment, PostLike, CommentLike, PostImage
+from posts.models import Post, Comment, PostLike, CommentLike, PostImage, Tag
 
 
 class RecursiveField(serializers.Serializer):
@@ -30,6 +30,12 @@ class PostImageSerializers(serializers.ModelSerializer):
         fields = ('id', 'image')
 
 
+class TagSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ('id', 'name')
+
+
 class PostSerializers(serializers.ModelSerializer):
     """
     전체 게시글에 대해서 유저
@@ -37,17 +43,25 @@ class PostSerializers(serializers.ModelSerializer):
     images = PostImageSerializers(many=True, read_only=True, )
     comment = CommentSerializers(many=True, read_only=True, )
     user = UserSimpleSerializers(read_only=True, )
+    tags = TagSerializers(many=True, read_only=True, )
+    tags_list = serializers.ListField(
+        child=serializers.CharField(max_length=20), write_only=True,
+    )
 
     class Meta:
         model = Post
-        fields = ('id', 'title', 'content', 'user', 'images', 'comment', 'like_count')
+        fields = ('id', 'title', 'content', 'user', 'images', 'comment', 'like_count', 'tags', 'tags_list')
         read_only_fields = ('like_count',)
 
     def create(self, validated_data):
+        tags = validated_data.pop('tags_list')
         posts_image = self.context['request'].FILES
         post = Post.objects.create(**validated_data)
         for image in posts_image.getlist('images'):
             PostImage.objects.create(post=post, image=image)
+        for name in tags:
+            ins, __ = Tag.objects.get_or_create(name=name)
+            post.tags.add(ins)
         return post
 
 
@@ -77,3 +91,4 @@ class CommentLikeSerializers(serializers.ModelSerializer):
     class Meta:
         model = CommentLike
         fields = ('id', 'comment', 'user')
+

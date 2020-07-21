@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 
 from config import settings
 from members.models import Profile
-from posts.models import Post, Comment, PostLike
+from posts.models import Post, Comment, PostLike, Tag
 
 User = get_user_model()
 
@@ -56,11 +56,17 @@ class PostTest(APITestCase):
             'title': 'testPost',
             'content': 'test Content',
             'image': test_image,
-            'user': self.user.id
+            'user': self.user.id,
+            'tags_list': ['강아지', '고양이', '참새', '너구리']
         }
         self.client.force_authenticate(self.user)
         response = self.client.post(f'/users/{self.user.id}/posts', data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertTrue(response.data['tags'])
+        for ins, name in zip(response.data['tags'], data['tags_list']):
+            self.assertTrue(ins['id'])
+            self.assertTrue(ins['name'], name)
 
     def test_retrieve(self):
         url = self.url + f'/{self.post.id}'
@@ -235,3 +241,39 @@ class CommentLikeTest(APITestCase):
     #     response = self.client.post(self.url)
     #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
     #     self.fail()
+
+
+class TagTest(APITestCase):
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(email='TestUser@test.com', password='1111')
+        self.post = Post.objects.create(user=self.user, title='title')
+        [Tag.objects.create(name=index) for index in '강아지 고양이 참새 너구리'.split(' ')]
+        self.tags = Tag.objects.all()
+
+    def test_list(self):
+        tags = Tag.objects.all()
+        self.client.force_authenticate(self.user)
+        response = self.client.get('/tag')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for tag, ins in zip(tags, response.data):
+            self.assertTrue(ins['id'])
+            self.assertEqual(tag.name, ins['name'])
+
+    def test_retrieve(self):
+        tag = self.tags[0]
+        tag2 = self.tags[1]
+        self.post.tags.add(tag)
+        post = Post.objects.create(user=self.user, title='해당 포스트는 쿼리셋에 포함되지 않아야 한다.')
+        self.client.force_authenticate(self.user)
+        response = self.client.get(f'/tag/{tag.pk}')
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['tags'][0]['name'], tag.name)
+
+        post2 = Post.objects.create(user=self.user, title='이번 코드는 post 가 두 개 나와야 한다.')
+        post2.tags.add(tag)
+        post2.tags.add(tag2)
+        response = self.client.get(f'/tag/{tag.pk}')
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data[1]['tags']), 2)
+        for data in response.data:
+            self.assertEqual(data['tags'][0]['name'], tag.name)
