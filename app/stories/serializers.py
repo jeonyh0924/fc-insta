@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from members.serializers import UserSimpleSerializers
-from stories.models import Story, StoryImage, StoryCheck
+from stories.models import Story, StoryCheck
 
 
 class StoryCheckSerializers(serializers.ModelSerializer):
@@ -10,33 +10,20 @@ class StoryCheckSerializers(serializers.ModelSerializer):
         fields = ('id', 'user', 'story')
 
 
-class StoryImageSerializers(serializers.ModelSerializer):
-    class Meta:
-        model = StoryImage
-        fields = ('image',)
-
-
 class StorySerializers(serializers.ModelSerializer):
-    image = StoryImageSerializers(many=True, read_only=True, )
-    check = StoryCheckSerializers(source='check_set', many=True,)
-    user = UserSimpleSerializers()
+    check = StoryCheckSerializers(source='check_set', many=True, read_only=True)
+    user = UserSimpleSerializers(read_only=True, )
 
     class Meta:
         model = Story
-        fields = ('id', 'user', 'content', 'image', 'check')
+        fields = ('id', 'user', 'content', 'check', 'image', 'video')
 
     def create(self, validated_data):
         story = Story.objects.create(**validated_data)
-        images = self.context['request'].FILES
-        image_list = []
-        for i in images.getlist('image'):
-            image_list.append(StoryImage(story=story, image=i))
-        StoryImage.objects.bulk_create(image_list)
         return story
 
 
 class StoryRetrieveSerializers(serializers.ModelSerializer):
-    image = StoryImageSerializers(many=True, read_only=True, )
     check = serializers.SerializerMethodField()
 
     class Meta:

@@ -7,26 +7,32 @@ from rest_framework.test import APITestCase
 
 from config import settings
 from members.models import Relations
-from stories.models import Story, StoryImage
+from stories.models import Story
 
 User = get_user_model()
 
 
 class StoryTest(APITestCase):
     def setUp(self) -> None:
-        self.user = User.objects.create_user(email='testUser@test.com', password='1111')
-        self.user2 = User.objects.create_user(email='testUser2@test.com', password='1111')
-
-        self.r1 = Relations.objects.create(from_user=self.user2, to_user=self.user, related_type='f')
-
-        self.story1 = Story.objects.create(user=self.user, content='content', )
         image = settings.dev.MEDIA_ROOT + '/20/07/08/tree.jpeg'
         test_image = SimpleUploadedFile(
             name='tree.jpeg',
             content=open(image, "rb").read(),
             content_type="image/jpeg"
         )
-        StoryImage.objects.create(story=self.story1, image=test_image)
+        video = settings.dev.MEDIA_ROOT + '/video/video.mov'
+        self.video_data = SimpleUploadedFile(
+            name="video.mov",
+            content=open(video, 'rb').read(),
+            content_type="video/mov"
+        )
+        self.user = User.objects.create_user(email='testUser@test.com', password='1111')
+        self.user2 = User.objects.create_user(email='testUser2@test.com', password='1111')
+
+        self.r1 = Relations.objects.create(from_user=self.user2, to_user=self.user, related_type='f')
+
+        self.story1 = Story.objects.create(user=self.user, content='content', image=test_image)
+        self.story2 = Story.objects.create(user=self.user, content='content', image=test_image)
 
     def test_list(self):
         """
@@ -44,34 +50,43 @@ class StoryTest(APITestCase):
         self.client.force_authenticate(self.user2)
         response = self.client.get(f'/users/{self.user2.id}/story')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['next'])
 
         response = self.client.get(f'/users/{self.user2.id}/story/{self.story1.id}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        print(response.data)
 
     def test_create(self):
         """
         - 이미지 생성 [0]
-        - 동영상 생성 [/]
+        - 동영상 생성 [0]
         """
         self.client.force_authenticate(self.user)
-        data = {
-            'content': 'content',
-        }
-        response = self.client.post(f'/users/{self.user.pk}/story', data=data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         image = settings.dev.MEDIA_ROOT + '/20/07/08/tree.jpeg'
-        test_image = SimpleUploadedFile(
+
+        image_data = SimpleUploadedFile(
             name='tree.jpeg',
             content=open(image, "rb").read(),
             content_type="image/jpeg"
         )
 
-        img_data = {
-            'content': 'content with image file',
-            'image': test_image,
+        data = {
+            'content': 'content',
+            'image': image_data,
         }
-        response = self.client.post(f'/users/{self.user.pk}/story', data=img_data)
+        response = self.client.post(f'/users/{self.user.pk}/story', data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(response.data['image'])
+        self.assertFalse(response.data['video'])
+
+        mov_data = {
+            'content': 'content with image file',
+            'video': self.video_data
+        }
+        response = self.client.post(f'/users/{self.user.pk}/story', data=mov_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(response.data['video'])
+        self.assertFalse(response.data['image'])
 
     def test_retrieve(self):
         self.client.force_authenticate(self.user)

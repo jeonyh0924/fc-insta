@@ -93,3 +93,10 @@ post.created_at - datetime.timedelta(hours=24)
 ### 둘을 합침
 
 Post.objects.filter(user_id__in=qs,created_at__gte=time_var)
+
+### django - soft delete
+데이터 삭제 시 크게 Soft Delete, Hard Delete로 나뉜다.
+
+Hard Delete - 데이터를 테이블에서 완전 삭제한다.
+Soft Delete - 논리적으로 삭제한다.
+[출처](https://wave1994.tistory.com/111)
