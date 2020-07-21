@@ -1,12 +1,11 @@
 from django.contrib.auth import get_user_model
-from django.utils.datastructures import MultiValueDictKeyError
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
-from members.serializers import ProfileDetailSerializers
 from posts.models import Post, Comment, PostLike, CommentLike, Tag
 from posts.serializers import PostSerializers, CommentUpdateSerializers, PostUpdateSerializers, PostLikeSerializers, \
     CommentLikeSerializers, CommentSerializers, TagSerializers
@@ -74,6 +73,7 @@ class CommentAPIView(viewsets.ModelViewSet):
 class PostLikeAPIView(GenericViewSet):
     queryset = PostLike.objects.all()
     serializer_class = PostLikeSerializers
+    filter_backends = [DjangoFilterBackend]
 
     def perform_create(self, serializer):
         serializer.save(
@@ -139,9 +139,14 @@ class CommentLikeAPIView(mixins.CreateModelMixin, mixins.DestroyModelMixin, Gene
 
 class TagAPIView(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet):
     queryset = Tag.objects.all()
-    serializer_class = TagSerializers
+    serializer_class = PostSerializers
 
     def get_queryset(self):
+        name = self.request.query_params.get('name', None)
+        print(name)
+        if name is not None:
+            queryset = Post.objects.filter(tags__name__startswith=name)
+            return queryset
         return super().get_queryset()
 
     def retrieve(self, request, *args, **kwargs):
