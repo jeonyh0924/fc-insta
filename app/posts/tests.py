@@ -249,15 +249,17 @@ class TagTest(APITestCase):
         self.post = Post.objects.create(user=self.user, title='title')
         [Tag.objects.create(name=index) for index in '강아지 고양이 참새 너구리'.split(' ')]
         self.tags = Tag.objects.all()
+        self.post.tags.add(self.tags[0])
 
     def test_list(self):
         tags = Tag.objects.all()
         self.client.force_authenticate(self.user)
-        response = self.client.get('/tag')
+        response = self.client.get(f'/tag?name=강아지')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        for tag, ins in zip(tags, response.data):
-            self.assertTrue(ins['id'])
-            self.assertEqual(tag.name, ins['name'])
+        dogs_post = Post.objects.filter(tags__name__startswith='강아지')
+        for response_data, query_data in zip(response.data, dogs_post):
+            self.assertEqual(response_data['id'], query_data.id)
+            self.assertEqual(response_data['title'], query_data.title)
 
     def test_retrieve(self):
         tag = self.tags[0]
