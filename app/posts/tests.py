@@ -53,7 +53,7 @@ class PostTest(APITestCase):
             content_type="image/jpeg"
         )
         data = {
-            'title': 'testPost',
+            'title': 'Last Dance',
             'content': 'test Content',
             'image': test_image,
             'user': self.user.id,
@@ -67,6 +67,8 @@ class PostTest(APITestCase):
         for ins, name in zip(response.data['tags'], data['tags_list']):
             self.assertTrue(ins['id'])
             self.assertTrue(ins['name'], name)
+
+        test_response = self.client.get(f'/users/{self.user.id}/posts')
 
     def test_retrieve(self):
         url = self.url + f'/{self.post.id}'
@@ -251,17 +253,40 @@ class TagTest(APITestCase):
         self.tags = Tag.objects.all()
         self.post.tags.add(self.tags[0])
 
-    def test_list(self):
-        tags = Tag.objects.all()
+    def test_list(self):  # /tag
+        Tag.objects.create(name='강호동')
+        Tag.objects.create(name='강아G')
         self.client.force_authenticate(self.user)
+
+        response = self.client.get(f'/tag?name=강')
+        filter_queryset = Tag.objects.filter(name__startswith='강')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for res_data, filter_ins in zip(response.data, filter_queryset):
+            self.assertEqual(res_data['id'], filter_ins.id)
+            self.assertEqual(res_data['name'], filter_ins.name)
+
+        response = self.client.get(f'/tag?name=강아')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        filter_queryset = Tag.objects.filter(name__startswith='강아')
+
+        for res_data, filter_ins in zip(response.data, filter_queryset):
+            self.assertEqual(res_data['id'], filter_ins.id)
+            self.assertEqual(res_data['name'], filter_ins.name)
+
         response = self.client.get(f'/tag?name=강아지')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        dogs_post = Post.objects.filter(tags__name__startswith='강아지')
-        for response_data, query_data in zip(response.data, dogs_post):
-            self.assertEqual(response_data['id'], query_data.id)
-            self.assertEqual(response_data['title'], query_data.title)
+        filter_queryset = Tag.objects.filter(name__startswith='강아지')
 
-    def test_retrieve(self):
+        for res_data, filter_ins in zip(response.data, filter_queryset):
+            self.assertEqual(res_data['id'], filter_ins.id)
+            self.assertEqual(res_data['name'], filter_ins.name)
+
+        response = self.client.get(f'/tag?name=태그가없는값은빈쿼리셋이온다.')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data)
+
+    def test_retrieve(self):  # /tag/1
         tag = self.tags[0]
         tag2 = self.tags[1]
         self.post.tags.add(tag)
@@ -279,3 +304,28 @@ class TagTest(APITestCase):
         self.assertEqual(len(response.data[1]['tags']), 2)
         for data in response.data:
             self.assertEqual(data['tags'][0]['name'], tag.name)
+
+    def test_posts(self):  # /tag/<pk:tag>/posts
+        """
+        /tag/1과 같은 처리이다. tag PK를 가지고 있는 포스트들에 대한 리스트를 보여준다.
+        """
+        tag = self.tags[0]
+        tag2 = self.tags[1]
+        tag3 = self.tags[2]
+
+        post1 = Post.objects.create(user=self.user, title='last dance')
+        self.client.force_authenticate(self.user)
+        response = self.client.get(f'/tag/{self.tags[0].id}/posts')
+        query_data = Post.objects.filter(tags__id=self.tags[0].pk)
+        for res_data, filter_data in zip(response.data, query_data):
+            self.assertEqual(res_data['id'], filter_data.id)
+            self.assertEqual(res_data['title'], filter_data.title)
+
+        self.post.tags.add(tag, tag2)
+        post1.tags.add(tag2, tag3)
+
+        response = self.client.get(f'/tag/{tag2.pk}/posts')
+        query_data = Post.objects.filter(tags__id=tag2.pk)
+        for res_data, filter_data in zip(response.data, query_data):
+            self.assertEqual(res_data['id'], filter_data.id)
+            self.assertEqual(res_data['title'], filter_data.title)

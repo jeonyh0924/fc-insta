@@ -135,3 +135,4 @@ class CommentLike(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(max_length=20, unique=True, )
+    count = models.IntegerField(default=0)

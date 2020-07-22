@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework import serializers
 
 from members.serializers import UserSerializers, UserSimpleSerializers
@@ -33,7 +34,7 @@ class PostImageSerializers(serializers.ModelSerializer):
 class TagSerializers(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'count')
 
 
 class PostSerializers(serializers.ModelSerializer):
@@ -62,6 +63,8 @@ class PostSerializers(serializers.ModelSerializer):
         for name in tags:
             ins, __ = Tag.objects.get_or_create(name=name)
             post.tags.add(ins)
+            ins.count = F('count') + 1
+            ins.save()
         return post
 
 
@@ -91,4 +94,3 @@ class CommentLikeSerializers(serializers.ModelSerializer):
     class Meta:
         model = CommentLike
         fields = ('id', 'comment', 'user')
-
