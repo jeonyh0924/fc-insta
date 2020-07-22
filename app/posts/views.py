@@ -139,13 +139,12 @@ class CommentLikeAPIView(mixins.CreateModelMixin, mixins.DestroyModelMixin, Gene
 
 class TagAPIView(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet):
     queryset = Tag.objects.all()
-    serializer_class = PostSerializers
+    serializer_class = TagSerializers
 
     def get_queryset(self):
         name = self.request.query_params.get('name', None)
-        print(name)
         if name is not None:
-            queryset = Post.objects.filter(tags__name__startswith=name)
+            queryset = Tag.objects.filter(name__startswith=name)
             return queryset
         return super().get_queryset()
 
@@ -153,3 +152,9 @@ class TagAPIView(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSe
         instance = Post.objects.filter(tags__id=kwargs['pk'])
         serializer = PostSerializers(instance, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, )
+    def posts(self, request, pk):
+        posts = Post.objects.filter(tags__id=pk)
+        serializer = PostSerializers(posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

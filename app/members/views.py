@@ -54,8 +54,6 @@ class UserModelViewAPI(viewsets.ModelViewSet):
     @action(detail=False)
     def page(self, request):
         # 내가 팔로우를 건 유저들의 게시글
-        qs = User.objects.filter(to_users_relation__from_user=request.user).values_list('id').distinct()
-
         qs = User.objects.filter(to_users_relation__from_user=request.user).filter(
             to_users_relation__related_type='f').values_list('id').distinct()
         posts = Post.objects.filter(user_id__in=qs)
