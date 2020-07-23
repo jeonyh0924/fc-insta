@@ -172,13 +172,29 @@ class Relations(models.Model):
         from_user = get_object_or_404(User, pk=self.from_user_id)
         to_user = get_object_or_404(User, pk=self.to_user_id)
 
-        if self.related_type == 'f':
+        created = self.pk is None
+
+        super().save(force_insert=False, force_update=False, using=None, update_fields=None)
+
+        """
+         - 새로 생성하는 유저가 'f' -> from_user following count += 1, to_user follower count += 1
+         - Block Relation -> Follow Relation 으로 update 
+         인스타그램은 기존에 팔로우 -> 블락은 같은 인스턴스
+         블락-> 팔로우는 블락이 걸린 릴레이션 자체를 삭제 후 새로 팔로우에 대한 릴레이션을 요청해야 한다. 
+        """
+
+        if created and self.related_type == 'f':
             # 팔로우를 건 유저의 팔로윙 카운트 증가.
             from_user.profile.following_count = F('following_count') + 1
             to_user.profile.follower_count = F('follower_count') + 1
             from_user.profile.save()
             to_user.profile.save()
-        return super().save(force_insert=False, force_update=False, using=None, update_fields=None)
+
+        if created is False and self.related_type == 'b':
+            from_user.profile.following_count = F('following_count') - 1
+            to_user.profile.follower_count = F('follower_count') - 1
+            from_user.profile.save()
+            to_user.profile.save()
 
     def delete(self, using=None, keep_parents=False):
         from_user = get_object_or_404(User, pk=self.from_user_id)
