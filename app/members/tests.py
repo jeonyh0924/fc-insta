@@ -114,6 +114,26 @@ class UserTest(APITestCase):
         response = self.client.get('/users/page')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_search_username(self):
+        """
+        :return:        특정 유저 이름을 검색하면 유저에 대한 데이터 리턴
+        """
+        self.client.force_authenticate(self.user)
+        User.objects.create_user('testUser@user.com', '1111')
+        User.objects.create_user('testFilterUser@user.com', '1111')
+
+        response = self.client.get('/users?username=test')
+        filter_data = User.objects.filter(profile__username__startswith='test')
+        for res_data, query_data in zip(response.data, filter_data):
+            self.assertEqual(res_data['id'], query_data.id)
+            self.assertEqual(res_data['email'], query_data.email)
+        response = self.client.get('/users?username=testUser')
+        filter_data = User.objects.filter(profile__username__startswith='testUser')
+        for res_data, query_data in zip(response.data, filter_data):
+            self.assertEqual(res_data['id'], query_data.id)
+            self.assertEqual(res_data['email'], query_data.email)
+
+
     def test_myPost(self):
         self.client.force_authenticate(self.user)
         post = Post.objects.create(
@@ -123,8 +143,7 @@ class UserTest(APITestCase):
         )
         co = Comment.objects.create(post=post, user=self.user, content='comment')
         co2 = Comment.objects.create(parent=co, user=self.user, content='comment2')
-        # Comment.objects.create(parent=co2, user=self.user, cont
-        # ent='comment3')
+
         response = self.client.get('/users/myProfile')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -233,6 +252,9 @@ class RelationTest(APITestCase):
         }
         response = self.client.post(f'/users/{user2.id}/relation', data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        profile_response = self.client.get(f'/users/{self.user.pk}/profile/{self.user.profile.pk}')
         r = Relations.objects.last()
         response = self.client.patch(f'/relation/{self.r.pk}', {"related_type": "b"})
+        # count 확인 로직
+        profile_response = self.client.get(f'/users/{self.user.pk}/profile/{self.user.profile.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

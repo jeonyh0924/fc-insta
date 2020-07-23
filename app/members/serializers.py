@@ -5,8 +5,6 @@ from rest_framework.exceptions import ValidationError
 from members.models import Relations, Profile
 from posts.models import Post
 
-# from posts.serializers import PostUpdateSerializers
-
 User = get_user_model()
 
 
@@ -14,20 +12,17 @@ class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
+            'id',
             'email',
             'password',
         )
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        context = validated_data.pop('context')
-        username = context.data.get('username')
+        return super().create(validated_data)
 
-        user = User.objects.create_user(**validated_data)
-        user.profile.username = username
-        user.profile.save()
-
-        return user
+    def save(self, **kwargs):
+        return super().save(**kwargs)
 
 
 class ProfileSerializers(serializers.ModelSerializer):
@@ -57,6 +52,10 @@ class UserSerializers(serializers.ModelSerializer):
             'password': {'write_only': True}
 
         }
+
+    @property
+    def data(self):
+        return super().data()
 
 
 class FollowerUserSerializers(serializers.ModelSerializer):

@@ -21,6 +21,13 @@ class UserModelViewAPI(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializers
 
+    def get_queryset(self):
+        queryset = User.objects.all()
+        username = self.request.query_params.get('username', None)
+        if username is not None:
+            queryset = User.objects.filter(profile__username__startswith=username)
+        return queryset
+
     def get_permissions(self):
         if self.action in ['partial_update', 'destroy']:
             return [IsOwnerOrReadOnly()]
@@ -36,11 +43,6 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         elif self.action in ['list', 'partial_update', 'retrieve']:
             return UserSimpleSerializers
         return super().get_serializer_class()
-
-    def perform_create(self, serializer):
-        serializer.save(
-            context=self.request
-        )
 
     @action(detail=True, methods=['post'], url_path='change-password')
     def set_password(self, request, pk):
@@ -148,43 +150,6 @@ class UserModelViewAPI(viewsets.ModelViewSet):
             return Response({'message: has not Relation'}, status=status.HTTP_400_BAD_REQUEST)
         relation.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-# @action(detail=False, methods=['post', 'delete', 'patch'])
-# def create_delete_Relation(self, request):
-#     """
-#     :param request: relation type 이 f면 팔로우 해주고  b면 블락건다.
-#     1. 이미 팔로우 한 유저가 블락을 걸면 이미 존재하는 릴레이션 지우고 사용자의 요청에 맞게 해준다.
-#     """
-#     to_user = User.objects.get(pk=request.query_params.get('toUser'))
-#     relation_type = request.query_params.get('type')
-#     method = request._request.method
-#     data = {
-#         'from_user': request.user.pk,
-#         'to_user': to_user.pk,
-#         'related_type': relation_type
-#     }
-#     try:
-#         relation = Relations.objects.get(from_user=request.user, to_user=to_user)
-#         if method == 'PATCH':
-#             serializers = self.get_serializer(relation, data=data, )
-#             if serializers.is_valid():
-#                 serializers.save()
-#                 return Response(serializers.data, status=status.HTTP_200_OK)
-#             return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
-#         elif method == 'DELETE':
-#             relation.delete()
-#             return Response(status=status.HTTP_204_NO_CONTENT)
-#         else:
-#             return Response({'message': "올바르지 않은 요청입니다."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-#     except Relations.DoesNotExist:
-#         if method == 'POST':
-#             serializer = self.get_serializer(data=data)
-#             if serializer.is_valid(raise_exception=True):
-#                 serializer.save()
-#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class UserProfileView(mixins.UpdateModelMixin,
