@@ -1,16 +1,17 @@
 from django.contrib.auth import get_user_model, authenticate
 # Create your views here.
+from django.db.models import Q
 from rest_framework import viewsets, status, exceptions, mixins
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from members.models import Relations, Profile
+from members.models import Relations, Profile, RecentlyUser
 from members.permissions import IsOwnerOrReadOnly
 from members.serializers import UserSerializers, RelationSerializers, UserCreateSerializer, ProfileUpdateSerializer, \
-    ChangePassSerializers, ProfileDetailSerializers, UserSimpleSerializers
+    ChangePassSerializers, ProfileDetailSerializers, UserSimpleSerializers, RecentlyUserSerializers
 from posts.models import Post
 from posts.serializers import PostProfileSerializers, PostSerializers
 
@@ -56,8 +57,10 @@ class UserModelViewAPI(viewsets.ModelViewSet):
     @action(detail=False)
     def page(self, request):
         # 내가 팔로우를 건 유저들의 게시글
-        qs = User.objects.filter(to_users_relation__from_user=request.user).filter(
-            to_users_relation__related_type='f').values_list('id').distinct()
+        qs = User.objects.filter(Q(to_users_relation__from_user=request.user,
+                                   to_users_relation__related_type='f') |
+                                 Q(pk=request.user.pk)
+                                 )
         posts = Post.objects.filter(user_id__in=qs)
         serializers = PostProfileSerializers(posts, many=True, context=request)
         return Response(serializers.data, status=status.HTTP_200_OK)
@@ -196,3 +199,29 @@ class RelationAPIView(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins
 
     def perform_update(self, serializer):
         serializer.save()
+
+
+class RecentlyUserAPIView(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
+                          mixins.DestroyModelMixin, mixins.ListModelMixin, GenericViewSet):
+    queryset = RecentlyUser.objects.all()
+    serializer_class = RecentlyUserSerializers
+
+    def get_queryset(self):
+        if self.kwargs['user_pk']:
+            qs = User.objects.filter(recently_to_user__from_user=self.kwargs['user_pk'])
+            queryset = Profile.objects.filter(user__id__in=qs)
+            return queryset
+        return super().get_queryset()
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ProfileDetailSerializers
+        return super().get_serializer_class()
+
+    def perform_create(self, serializer):
+        """
+        2개 이상이면 가장 오래된 기록 삭제
+        """
+        to_user = get_object_or_404(User, pk=self.kwargs['user_pk'])
+        if to_user:
+            serializer.save(from_user=self.request.user, to_user=to_user)

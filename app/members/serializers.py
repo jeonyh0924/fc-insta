@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers, exceptions
 from rest_framework.exceptions import ValidationError
 
-from members.models import Relations, Profile
+from members.models import Relations, Profile, RecentlyUser
 from posts.models import Post
 
 User = get_user_model()
@@ -33,13 +33,20 @@ class ProfileSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_relation(self, obj):
-        relation = Relations.objects.get(from_user=self.context.user, to_user=obj.user_id)
-        related_type = relation.related_type
-        data = {
-            "relation_id": relation.id,
-            "related_type": related_type
-        }
-        return data
+        try:
+            relation = Relations.objects.get(from_user=self.context.user, to_user=obj.user_id)
+            related_type = relation.related_type
+            data = {
+                "relation_id": relation.id,
+                "related_type": related_type
+            }
+            return data
+        except Relations.DoesNotExist:
+            if obj.user_id == self.context.user.id:
+                data = {
+                    "relation": "self"
+                }
+                return data
 
 
 class UserSerializers(serializers.ModelSerializer):
@@ -119,3 +126,12 @@ class ChangePassSerializers(serializers.Serializer):
             # instance.save 하면 모델의 create가 된다.
             return instance
         raise exceptions.AuthenticationFailed()
+
+
+class RecentlyUserSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = RecentlyUser
+        fields = ('id', 'from_user', 'to_user')
+
+    def create(self, validated_data):
+        return super().create(validated_data)
