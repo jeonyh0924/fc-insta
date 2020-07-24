@@ -52,8 +52,6 @@ class User(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     relations_users = models.ManyToManyField(
         'self',
-        through='Relations',
-        # relations_users에 대한 역방향 참조에 대해서 거부한다.
         related_name='+',
     )
 
@@ -225,3 +223,38 @@ class Profile(models.Model):
     follower_count = models.IntegerField(default=0)
     # 내가 팔로우를 하고 있는 사람의 수
     following_count = models.IntegerField(default=0)
+
+
+class RecentlyUser(models.Model):
+    from_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='from_user',
+        related_query_name='recently_from_user',
+        null=True,
+    )
+    to_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='to_user',
+        related_query_name='recently_to_user',
+        null=True,
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def save(self, **kwargs):
+        user_query = User.objects.filter(recently_to_user__from_user=1)
+        print(User.objects.filter(recently_to_user__from_user=self.from_user.id))
+        if len(user_query) >= 2:
+            user_query[0].delete()
+            print(User.objects.filter(recently_to_user__from_user=self.from_user.id))
+        try:
+            ins = RecentlyUser.objects.get(from_user=self.from_user, to_user=self.to_user)
+            ins.delete()
+            print(User.objects.filter(recently_to_user__from_user=self.from_user.id))
+            return super().save(force_insert=False, force_update=False, using=None, update_fields=None)
+        except RecentlyUser.DoesNotExist:
+            print(User.objects.filter(recently_to_user__from_user=self.from_user.id))
+            return super().save(force_insert=False, force_update=False, using=None, update_fields=None)

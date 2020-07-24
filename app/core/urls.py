@@ -2,7 +2,7 @@ from django.conf.urls import url
 from django.urls import include
 from rest_framework_nested import routers
 
-from members.views import UserModelViewAPI, UserProfileView, RelationAPIView
+from members.views import UserModelViewAPI, UserProfileView, RelationAPIView, RecentlyUserAPIView
 from posts.views import PostsAPIView, CommentAPIView, PostLikeAPIView, CommentLikeAPIView, TagAPIView
 from stories.views import StoryAPIView
 
@@ -14,6 +14,7 @@ router.register('comments', CommentAPIView)
 router.register('relation', RelationAPIView)
 router.register('story', StoryAPIView)
 router.register('tag', TagAPIView)
+
 # /users/
 users_router = routers.NestedSimpleRouter(router, 'users', lookup='user')
 # /users/posts
@@ -24,6 +25,8 @@ users_router.register('profile', UserProfileView)
 users_router.register('relation', RelationAPIView)
 # /users/story
 users_router.register('story', StoryAPIView)
+# /users/recently
+users_router.register('recently', RecentlyUserAPIView)
 
 # /users/posts
 posts_router = routers.NestedSimpleRouter(users_router, 'posts', lookup='post')

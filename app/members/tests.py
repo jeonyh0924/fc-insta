@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-from members.models import Profile, Relations
+from members.models import Profile, Relations, RecentlyUser
 from posts.models import Post, Comment
 
 User = get_user_model()
@@ -101,6 +101,7 @@ class UserTest(APITestCase):
         self.assertEqual(Token.objects.filter(user=self.user).first(), None)
 
     def test_page(self):
+        self_user_post = Post.objects.create(user=self.user, title='self_user_title', content='self_user')
         Relations.objects.create(from_user=self.user, to_user=self.user2, related_type='f')
         post = Post.objects.create(user=self.user2, title='title', content='content')
         Comment.objects.create(post=post, user=self.user2, content='content')
@@ -132,7 +133,6 @@ class UserTest(APITestCase):
         for res_data, query_data in zip(response.data, filter_data):
             self.assertEqual(res_data['id'], query_data.id)
             self.assertEqual(res_data['email'], query_data.email)
-
 
     def test_myPost(self):
         self.client.force_authenticate(self.user)
@@ -258,3 +258,44 @@ class RelationTest(APITestCase):
         # count 확인 로직
         profile_response = self.client.get(f'/users/{self.user.pk}/profile/{self.user.profile.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class RecentlyTest(APITestCase):
+    def setUp(self) -> None:
+        self.from_user = User.objects.create_user('from_user@test.com', '1111')
+        self.to_user = User.objects.create_user('to_user@test.com', '1111')
+        self.other_user = User.objects.create_user('otherUser@test.com', '1111')
+        r1 = RecentlyUser.objects.create(from_user=self.from_user, to_user=self.to_user)
+        r2 = RecentlyUser.objects.create(from_user=self.from_user, to_user=self.other_user)
+
+    def test_list(self):
+        """
+        최근에 검색한 유저 프로필 저옵가 제일 위에 오도록
+        """
+        self.client.force_authenticate(self.from_user)
+        response = self.client.get(f'/users/{self.from_user.id}/recently')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_create(self):
+        limit_user = User.objects.create_user('limit@limit.com', '1111')
+        self.client.force_authenticate(self.from_user)
+        # data = {
+        #     'from_user': self.from_user.id,
+        #     'to_user': self.to_user.id,
+        # }
+        print(User.objects.filter(recently_to_user__from_user=self.from_user.id))
+        # 올바른 recently 생성
+        response = self.client.post(f'/users/{self.to_user.id}/recently')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        print(User.objects.filter(recently_to_user__from_user=self.from_user.id))
+        response = self.client.post(f'/users/{self.other_user.id}/recently')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        print(User.objects.filter(recently_to_user__from_user=self.from_user.id))
+        # 3개 이상의 최근 유저 검색 리스트가 있다면, 가장 오래된 검색 기록을 삭제한다.
+        response = self.client.post(f'/users/{limit_user.id}/recently')
+        print(User.objects.filter(recently_to_user__from_user=self.from_user.id))
+
+        # 존재하지 않는 to_user 생성 시 , 404 에러 발생
+        response = self.client.post(f'/users/100/recently')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.fail()
