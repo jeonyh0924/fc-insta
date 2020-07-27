@@ -3,10 +3,11 @@ from django.urls import include
 from rest_framework_nested import routers
 
 from members.views import UserModelViewAPI, UserProfileView, RelationAPIView, RecentlyUserAPIView
+from optima.views import ChildViewSet
 from posts.views import PostsAPIView, CommentAPIView, PostLikeAPIView, CommentLikeAPIView, TagAPIView
 from stories.views import StoryAPIView
 
-router = routers.SimpleRouter(trailing_slash=False)
+router = routers.SimpleRouter(trailing_slash=True)
 
 router.register('users', UserModelViewAPI)
 router.register('posts', PostsAPIView)
@@ -14,6 +15,7 @@ router.register('comments', CommentAPIView)
 router.register('relation', RelationAPIView)
 router.register('story', StoryAPIView)
 router.register('tag', TagAPIView)
+
 
 # /users/
 users_router = routers.NestedSimpleRouter(router, 'users', lookup='user')
