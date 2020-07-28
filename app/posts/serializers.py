@@ -70,9 +70,11 @@ class PostSerializers(serializers.ModelSerializer):
 
 
 class PostUpdateSerializers(serializers.ModelSerializer):
+    tags = TagSerializers(many=True, read_only=True, )
+
     class Meta:
         model = Post
-        fields = ('id', 'title', 'content')
+        fields = ('id', 'title', 'content', 'tags',)
 
 
 class PostProfileSerializers(serializers.ModelSerializer):

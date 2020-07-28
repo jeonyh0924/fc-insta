@@ -20,7 +20,7 @@ class PostsAPIView(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if self.action in ['list', 'retrieve']:
-            qs = qs.select_related('user').\
+            qs = qs.select_related('user'). \
                 prefetch_related('images', 'comment__user__profile', 'tags', 'comment__child', )
         return qs
 

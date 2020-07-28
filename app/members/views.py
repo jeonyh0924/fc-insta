@@ -1,3 +1,5 @@
+import time
+
 from django.contrib.auth import get_user_model, authenticate
 # Create your views here.
 from django.db.models import Q
@@ -15,6 +17,7 @@ from members.serializers import UserSerializers, RelationSerializers, UserCreate
     UserProfileSerializers
 from posts.models import Post
 from posts.serializers import PostProfileSerializers, PostSerializers
+from django.core.cache import cache
 
 User = get_user_model()
 
@@ -85,20 +88,19 @@ class UserModelViewAPI(viewsets.ModelViewSet):
 
         if user is None:
             raise exceptions.AuthenticationFailed('No such user')
-        try:
-            token = Token.objects.get(user=user)
-        except Token.DoesNotExist:
-            token = Token.objects.create(user=user)
-            data = {
-                'message': 'token create',
-                'token': token.key
-            }
-            return Response(data, status=status.HTTP_201_CREATED)
+
+        login_key = 'here_is_token'
+        token = cache.get(login_key)
+        if not token:
+            old_token = Token.objects.filter(user=user)
+            if old_token.exists():
+                old_token.delete()
+            token, __ = Token.objects.get_or_create(user=user)
+            cache.set(login_key, token, 60*60*24)
         data = {
-            'message': 'token get',
-            'token': token.key,
+            'token': token.key
         }
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['delete'])
     def logout(self, request):

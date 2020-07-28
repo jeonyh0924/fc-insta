@@ -13,7 +13,7 @@ router.register('posts', PostsAPIView)
 router.register('comments', CommentAPIView)
 router.register('relation', RelationAPIView)
 router.register('story', StoryAPIView)
-router.register('tag', TagAPIView)
+router.register('tags', TagAPIView)
 
 # /users/
 users_router = routers.NestedSimpleRouter(router, 'users', lookup='user')
