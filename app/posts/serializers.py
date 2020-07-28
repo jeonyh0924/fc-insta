@@ -1,7 +1,7 @@
 from django.db.models import F
 from rest_framework import serializers
 
-from members.serializers import UserSerializers, UserSimpleSerializers
+from members.serializers import UserSerializers, UserSimpleSerializers, UserProfileSerializers
 from posts.models import Post, Comment, PostLike, CommentLike, PostImage, Tag
 
 
@@ -12,6 +12,7 @@ class RecursiveField(serializers.Serializer):
 
 
 class CommentSerializers(serializers.ModelSerializer):
+    user = UserProfileSerializers(read_only=True)
     child = RecursiveField(many=True, required=False)
 
     class Meta:

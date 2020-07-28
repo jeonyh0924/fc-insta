@@ -11,7 +11,8 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from members.models import Relations, Profile, RecentlyUser
 from members.permissions import IsOwnerOrReadOnly
 from members.serializers import UserSerializers, RelationSerializers, UserCreateSerializer, ProfileUpdateSerializer, \
-    ChangePassSerializers, ProfileDetailSerializers, UserSimpleSerializers, RecentlyUserSerializers
+    ChangePassSerializers, ProfileDetailSerializers, UserSimpleSerializers, RecentlyUserSerializers, \
+    UserProfileSerializers
 from posts.models import Post
 from posts.serializers import PostProfileSerializers, PostSerializers
 
@@ -23,10 +24,10 @@ class UserModelViewAPI(viewsets.ModelViewSet):
     serializer_class = UserSerializers
 
     def get_queryset(self):
-        queryset = User.objects.all()
+        queryset = super().get_queryset()
         username = self.request.query_params.get('username', None)
         if username is not None:
-            queryset = User.objects.filter(profile__username__startswith=username)
+            queryset = User.objects.filter(profile__username__startswith=username).select_related('profile')
         return queryset
 
     def get_permissions(self):
@@ -35,13 +36,15 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_serializer_class(self):
+        if self.action in ['list']:
+            return UserProfileSerializers
         if self.action in ['makeFollow', 'makeBlock', 'create_delete_Relation']:
             return RelationSerializers
         elif self.action in ['create', 'login']:
             return UserCreateSerializer
         elif self.action == 'set_password':
             return ChangePassSerializers
-        elif self.action in ['list', 'partial_update', 'retrieve']:
+        elif self.action in ['partial_update', 'retrieve']:
             return UserSimpleSerializers
         return super().get_serializer_class()
 
@@ -61,14 +64,16 @@ class UserModelViewAPI(viewsets.ModelViewSet):
                                    to_users_relation__related_type='f') |
                                  Q(pk=request.user.pk)
                                  )
-        posts = Post.objects.filter(user_id__in=qs)
+        posts = Post.objects.filter(user_id__in=qs).select_related('user__profile') \
+            .prefetch_related('comment__user__profile', 'images', 'comment__child__parent')
         serializers = PostProfileSerializers(posts, many=True, context=request)
         return Response(serializers.data, status=status.HTTP_200_OK)
 
     @action(detail=False, )
     def myProfile(self, request):
         # 내가 쓴 게시글
-        posts = Post.objects.filter(user=request.user)
+        posts = Post.objects.filter(user=request.user).select_related('user', ) \
+            .prefetch_related('comment__user__profile', 'tags', 'images', 'comment__child__parent')
         serializers = PostSerializers(posts, many=True, context=request)
         return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -114,7 +119,7 @@ class UserModelViewAPI(viewsets.ModelViewSet):
     @action(detail=False)
     def follower(self, request):
         users = request.user.follower
-        serializers = UserSerializers(users, many=True, )
+        serializers = UserSerializers(users, many=True, context=self.request)
         return Response(serializers.data, status=status.HTTP_200_OK)
 
     @action(detail=False)
@@ -163,9 +168,9 @@ class UserProfileView(mixins.UpdateModelMixin,
 
     def get_queryset(self):
         if self.action in ['retrieve', 'partial_update']:
-            qs = Profile.objects.filter(pk=self.kwargs['pk'])
-        elif self.action == 'list':
-            qs = Profile.objects.filter(user=self.request.user)
+            qs = Profile.objects.filter(pk=self.kwargs['pk']).select_related('user')
+        # elif self.action == 'list':
+        #     qs = Profile.objects.filter(user=self.request.user).select_related('user')
         return qs
 
     def get_serializer_class(self):

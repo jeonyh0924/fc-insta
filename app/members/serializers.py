@@ -30,7 +30,7 @@ class ProfileSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = ('id', 'username', 'introduce', 'follower_count', 'following_count', 'relation',)
 
     def get_relation(self, obj):
         try:
@@ -112,6 +112,14 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             'username',
             'introduce'
         )
+
+
+class UserProfileSerializers(serializers.ModelSerializer):
+    profile = ProfileUpdateSerializer()
+
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'profile')
 
 
 class ChangePassSerializers(serializers.Serializer):

@@ -98,7 +98,7 @@ class User(AbstractBaseUser):
         user = User.objects.filter(
             to_users_relation__from_user=self,
             to_users_relation__related_type='f'
-        )
+        ).select_related('profile')
         return user
 
     @property
@@ -107,7 +107,7 @@ class User(AbstractBaseUser):
         user = User.objects.filter(
             from_users_relation__to_user=self,
             from_users_relation__related_type='f'
-        )
+        ).select_related('profile')
         return user
 
     @property
@@ -125,7 +125,7 @@ class User(AbstractBaseUser):
         user = User.objects.filter(
             to_users_relation__from_user=self,
             to_users_relation__related_type='b'
-        )
+        ).select_related('profile')
         return user
 
 

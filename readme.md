@@ -100,3 +100,15 @@ Post.objects.filter(user_id__in=qs,created_at__gte=time_var)
 Hard Delete - 데이터를 테이블에서 완전 삭제한다.
 Soft Delete - 논리적으로 삭제한다.
 [출처](https://wave1994.tistory.com/111)
+
+
+
+### 쿼리 최적화
+[링크](https://blog.myungseokang.dev/posts/database-access-optimization/)
+[링크2](https://docs.google.com/presentation/d/1hB8IaW1jGxBiCZRalMeAxsddZF_1Aovas0IbcHco-NQ/edit#slide=id.g8ced37de75_0_10)
+[링크3](https://blog.doosikbae.com/123)
+[링크4](https://www.whatap.io/ko/blog/6/)
+
+대부분의 최적화 내용은 Disk IO, network IO 최적화를 할 것 이다. DB 최적화만 하여도 기능적인 최적화가 마무리 될 것이다. 
+DB에 접근하면 Dist와 네트워크에 접근을 한다. 
+데이터베이스는 퍼모먼스 이슈의 90%는 데이터베이스에서 발생 한다. 

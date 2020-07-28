@@ -17,6 +17,13 @@ class PostsAPIView(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializers
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.action in ['list', 'retrieve']:
+            qs = qs.select_related('user').\
+                prefetch_related('images', 'comment__user__profile', 'tags', 'comment__child', )
+        return qs
+
     def get_serializer_class(self):
         if self.action == 'partial_update':
             return PostUpdateSerializers
@@ -34,6 +41,12 @@ class PostsAPIView(viewsets.ModelViewSet):
 class CommentAPIView(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializers
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.action in ['list', 'retrieve']:
+            qs = qs.select_related('user__profile', ).prefetch_related('child__user__profile', )
+        return qs
 
     def get_serializer_class(self):
         if self.action == 'partial_update':
