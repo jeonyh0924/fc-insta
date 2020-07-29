@@ -19,7 +19,7 @@ class MyUserManager(BaseUserManager):
         if not email:
             raise ValueError('Users must have an email address')
 
-        user = self.model(
+            user = self.model(
             email=self.normalize_email(email),
         )
 
@@ -64,13 +64,12 @@ class User(AbstractBaseUser):
         if not self.pk:
             super().save(*args, **kwargs)
             email, domain = self.email.split('@')
-            profile = Profile.objects.create(
+            Profile.objects.create(
                 user=self,
                 username=email
             )
         else:
-            print(f'user{self.pk}')
-            val = cache.delete(f'user{self.pk}')
+            cache.delete(f'user{self.pk}')
             super().save(*args, **kwargs)
         if self._password is not None:
             password_validation.password_changed(self._password, self)

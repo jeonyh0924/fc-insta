@@ -52,8 +52,7 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     def retrieve(self, request, *args, **kwargs):
-        kwargs = kwargs['pk']
-        key = f'user{kwargs}'
+        key = f"user{kwargs['pk']}"
         instance = cache.get(key)
         if not instance:
             instance = self.get_object()
@@ -92,10 +91,6 @@ class UserModelViewAPI(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def login(self, request):
-        """
-        :왜 캐시를 사용하였는지에 대해서?
-        - 24시간동안 유효한 token이라는 변수를
-        """
         email = request.data.get('email')
         password = request.data.get('password')
         user = authenticate(request, email=email, password=password)
@@ -103,16 +98,16 @@ class UserModelViewAPI(viewsets.ModelViewSet):
         if user is None:
             raise exceptions.AuthenticationFailed('No such user')
 
-        login_key = 'here_is_token'
-        token_val = cache.get(login_key)
-        if not token_val:
+        token_key = 'here_is_token'
+        token_value = cache.get(token_key)
+        if not token_value:
             old_token = Token.objects.filter(user=user)
             if old_token.exists():
                 old_token.delete()
-            token_val, __ = Token.objects.get_or_create(user=user)
-            cache.set(login_key, token_val, 60 * 60 * 24)
+            token_value, __ = Token.objects.get_or_create(user=user)
+            cache.set(token_key, token_value, 60 * 60 * 24)
         data = {
-            'token': token_val.key
+            'token': token_value.key
         }
         return Response(data, status=status.HTTP_201_CREATED)
 
