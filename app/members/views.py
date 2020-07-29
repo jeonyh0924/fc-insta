@@ -51,6 +51,16 @@ class UserModelViewAPI(viewsets.ModelViewSet):
             return UserSimpleSerializers
         return super().get_serializer_class()
 
+    def retrieve(self, request, *args, **kwargs):
+        kwargs = kwargs['pk']
+        key = f'user{kwargs}'
+        instance = cache.get(key)
+        if not instance:
+            instance = self.get_object()
+            cache.set(key, instance, 60*60)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['post'], url_path='change-password')
     def set_password(self, request, pk):
         user = get_object_or_404(User, pk=pk)
@@ -82,6 +92,10 @@ class UserModelViewAPI(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def login(self, request):
+        """
+        :왜 캐시를 사용하였는지에 대해서?
+        - 24시간동안 유효한 token이라는 변수를
+        """
         email = request.data.get('email')
         password = request.data.get('password')
         user = authenticate(request, email=email, password=password)
@@ -90,15 +104,15 @@ class UserModelViewAPI(viewsets.ModelViewSet):
             raise exceptions.AuthenticationFailed('No such user')
 
         login_key = 'here_is_token'
-        token = cache.get(login_key)
-        if not token:
+        token_val = cache.get(login_key)
+        if not token_val:
             old_token = Token.objects.filter(user=user)
             if old_token.exists():
                 old_token.delete()
-            token, __ = Token.objects.get_or_create(user=user)
-            cache.set(login_key, token, 60*60*24)
+            token_val, __ = Token.objects.get_or_create(user=user)
+            cache.set(login_key, token_val, 60 * 60 * 24)
         data = {
-            'token': token.key
+            'token': token_val.key
         }
         return Response(data, status=status.HTTP_201_CREATED)
 

@@ -3,6 +3,7 @@ from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 from django.db import models
+from django.core.cache import cache
 
 # User = get_user_model()
 from django.db.models import F
@@ -59,9 +60,6 @@ class User(AbstractBaseUser):
 
     USERNAME_FIELD = 'email'
 
-    def __str__(self):
-        return f'{self.pk}'
-
     def save(self, *args, **kwargs):
         if not self.pk:
             super().save(*args, **kwargs)
@@ -71,10 +69,16 @@ class User(AbstractBaseUser):
                 username=email
             )
         else:
+            print(f'user{self.pk}')
+            val = cache.delete(f'user{self.pk}')
             super().save(*args, **kwargs)
         if self._password is not None:
             password_validation.password_changed(self._password, self)
             self._password = None
+
+    def delete(self, **kwargs):
+        cache.delete(f'user{self.pk}')
+        return super().delete()
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"

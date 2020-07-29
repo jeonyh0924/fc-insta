@@ -6,7 +6,7 @@ from members.views import UserModelViewAPI, UserProfileView, RelationAPIView, Re
 from posts.views import PostsAPIView, CommentAPIView, PostLikeAPIView, CommentLikeAPIView, TagAPIView
 from stories.views import StoryAPIView
 
-router = routers.SimpleRouter(trailing_slash=True)
+router = routers.SimpleRouter(trailing_slash=False)
 
 router.register('users', UserModelViewAPI)
 router.register('posts', PostsAPIView)
