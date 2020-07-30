@@ -3,12 +3,13 @@ import time
 from django.contrib.auth import get_user_model, authenticate
 # Create your views here.
 from django.db.models import Q
+from django.utils import timezone
 from rest_framework import viewsets, status, exceptions, mixins
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
 from members.models import Relations, Profile, RecentlyUser
 from members.permissions import IsOwnerOrReadOnly
@@ -27,7 +28,7 @@ class UserModelViewAPI(viewsets.ModelViewSet):
     serializer_class = UserSerializers
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().select_related('profile')
         username = self.request.query_params.get('username', None)
         if username is not None:
             queryset = User.objects.filter(profile__username__startswith=username).select_related('profile')

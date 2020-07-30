@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'mptt',
     'debug_toolbar',
+    'cacheops',
 
 ]
 
@@ -148,3 +149,10 @@ CACHES = {
         }
     }
 }
+CACHEOPS_REDIS = {
+    'host': 'localhost',  # redis-server is on same machine
+    'port': 6379,  # default redis port
+    'db': 1,  # SELECT non-default redis database
+}
+
+CACHEOPS = {'members.User': {'ops': 'all', 'timeout': 10}, }
