@@ -52,6 +52,7 @@ class User(AbstractBaseUser):
     relations_users = models.ManyToManyField(
         'self',
         related_name='+',
+        blank=True,
     )
 
     objects = MyUserManager()

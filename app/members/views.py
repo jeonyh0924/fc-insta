@@ -23,6 +23,35 @@ from django.core.cache import cache
 User = get_user_model()
 
 
+# def retrieve_get_object(self):
+#     """
+#     Returns the object the view is displaying.
+#
+#     You may want to override this if you need to provide non-standard
+#     queryset lookups.  Eg if objects are referenced using multiple
+#     keyword arguments in the url conf.
+#     """
+#     queryset = self.filter_queryset(self.get_queryset()).cache()
+#
+#     # Perform the lookup filtering.
+#     lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+#
+#     assert lookup_url_kwarg in self.kwargs, (
+#             'Expected view %s to be called with a URL keyword argument '
+#             'named "%s". Fix your URL conf, or set the `.lookup_field` '
+#             'attribute on the view correctly.' %
+#             (self.__class__.__name__, lookup_url_kwarg)
+#     )
+#
+#     filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+#     obj = get_object_or_404(queryset, **filter_kwargs)
+#
+#     # May raise a permission denied
+#     self.check_object_permissions(self.request, obj)
+#
+#     return obj
+
+
 class UserModelViewAPI(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializers
@@ -52,14 +81,25 @@ class UserModelViewAPI(viewsets.ModelViewSet):
             return UserSimpleSerializers
         return super().get_serializer_class()
 
-    def retrieve(self, request, *args, **kwargs):
-        key = f"user{kwargs['pk']}"
-        instance = cache.get(key)
-        if not instance:
-            instance = self.get_object()
-            cache.set(key, instance, 60*60)
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+    # def list(self, request, *args, **kwargs):
+    #     queryset = self.filter_queryset(self.get_queryset()).cache()
+    #
+    #     page = self.paginate_queryset(queryset)
+    #     if page is not None:
+    #         serializer = self.get_serializer(page, many=True)
+    #         return self.get_paginated_response(serializer.data)
+    #
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+
+    # def retrieve(self, request, *args, **kwargs):
+    #     key = f"user{kwargs['pk']}"
+    #     instance = cache.get(key)
+    #     if not instance:
+    #         instance = self.get_object()
+    #         cache.set(key, instance, 60 * 60)
+    #     serializer = self.get_serializer(instance)
+    #     return Response(serializer.data)
 
     @action(detail=True, methods=['post'], url_path='change-password')
     def set_password(self, request, pk):
@@ -181,14 +221,20 @@ class UserProfileView(mixins.UpdateModelMixin,
     def get_queryset(self):
         if self.action in ['retrieve', 'partial_update']:
             qs = Profile.objects.filter(pk=self.kwargs['pk']).select_related('user')
+
         # elif self.action == 'list':
-        #     qs = Profile.objects.filter(user=self.request.user).select_related('user')
+        #     qs = Profile.objects.filter(user=self.request.user).select_related('user').cache()
         return qs
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return ProfileDetailSerializers
         return super().get_serializer_class()
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = retrieve_get_object(self)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 class RelationAPIView(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin,

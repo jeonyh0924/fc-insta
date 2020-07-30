@@ -81,19 +81,6 @@ Post.objects.filter(user_id__in=qs)
 ```
 
 
-
-### 날 포함한 게시글
-```
-qs = User.objects.filter(Q(to_users_relation__from_user=user)| Q(pk=user.pk)).values_list('id')
-```
-
-### 하루 안의 게시글
-post.created_at - datetime.timedelta(hours=24)
-
-### 둘을 합침
-
-Post.objects.filter(user_id__in=qs,created_at__gte=time_var)
-
 ### django - soft delete
 데이터 삭제 시 크게 Soft Delete, Hard Delete로 나뉜다.
 
@@ -109,6 +96,49 @@ Soft Delete - 논리적으로 삭제한다.
 [링크3](https://blog.doosikbae.com/123)
 [링크4](https://www.whatap.io/ko/blog/6/)
 
+#### Optimizing - 내용 정리 
 대부분의 최적화 내용은 Disk IO, network IO 최적화를 할 것 이다. DB 최적화만 하여도 기능적인 최적화가 마무리 될 것이다. 
 DB에 접근하면 Dist와 네트워크에 접근을 한다. 
 데이터베이스는 퍼모먼스 이슈의 90%는 데이터베이스에서 발생 한다. 
+
+속도
+-----------------
+CPU>RAM >>>>>SSD >>>>>>>>>>>>>>>>HDD >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Nework
+
+#### DJango Debug Toolbar
+[적용](https://django-debug-toolbar.readthedocs.io/en/latest/installation.html)
+[Lazy Loading](https://docs.djangoproject.com/en/3.0/topics/db/queries/#querysets-are-lazy)
+
+Eager Loading - selcet_related, prefetch_related
+
+#### Caching
+[drf cache](https://www.django-rest-framework.org/api-guide/caching/)
+
+[Django Cache get, set](https://docs.djangoproject.com/en/3.0/topics/cache/)
+
+[Django Redis](https://github.com/jazzband/django-redis)
+
+[When QuerySets are evaluated](https://docs.djangoproject.com/en/3.0/ref/models/querysets/#when-querysets-are-evaluated)
+
+[Django Performance Optimizing](https://docs.djangoproject.com/en/3.0/topics/db/optimization/)
+
+##### Django Explain()
+
+- 쿼리 분석결과 확인
+- 인덱스 사용 여부 확인
+- 대상 row 갯수 확인
+- qs.explain()
+
+### CacheOps
+[라이브러리](https://github.com/Suor/django-cacheops)
+[참고자료1](https://americanopeople.tistory.com/318)
+[참고자료2](https://medium.com/29cm/cacheops-orm%EC%97%90-redis-cache-%EC%89%BD%EA%B2%8C-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B8%B0-966249a1c615)
+#### CacheOps - 내용정리
+Django에 Redis Cache를 쉽게 적용하고, 관리할 수 있도록 도와주는 라이브러리이다.
+
+Cacheops의 가장 큰 장점은 ORM에 캐시를 간편하게 적용할 수 있단 점이다. 
+
+모델에서 캐시를 바라보게 하고 싶다면, settings에 설정을 추가한다.
+
+get, set과 달리 자신이 캐시값과 최신값이 변동 될 경우 기존의 캐시를 삭제하고, 새로운 캐시를 생성한다. 
+[출처](https://americanopeople.tistory.com/318)

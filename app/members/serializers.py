@@ -1,3 +1,4 @@
+from cacheops import cached
 from django.contrib.auth import get_user_model
 from rest_framework import serializers, exceptions
 from rest_framework.exceptions import ValidationError

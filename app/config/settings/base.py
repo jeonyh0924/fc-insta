@@ -149,10 +149,17 @@ CACHES = {
         }
     }
 }
-CACHEOPS_REDIS = {
-    'host': 'localhost',  # redis-server is on same machine
-    'port': 6379,  # default redis port
-    'db': 1,  # SELECT non-default redis database
-}
+# CACHEOPS_REDIS = {
+#     'host': 'localhost',  # redis-server is on same machine
+#     'port': 6379,  # default redis port
+#     'db': 1,  # SELECT non-default redis database
+# }
 
-CACHEOPS = {'members.User': {'ops': 'all', 'timeout': 10}, }
+CACHEOPS = {
+    'members.User': {'ops': 'all', 'timeout': 60 * 60},
+    'members.Profile': {'ops': 'all', 'timeout': 60},
+    'posts.Post': {'ops': 'all', 'timeout': 60},
+    'posts.Comment': {'ops': 'all', 'timeout': 60},
+    'posts.PostImage': {'ops': 'all', 'timeout': 60},
+    'posts.Tag': {'ops': 'all', 'timeout': 60},
+}
