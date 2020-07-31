@@ -85,10 +85,22 @@ class RelationSerializers(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = (
+            'id',
+            'username',
+            'introduce'
+        )
+
+
 class UserSimpleSerializers(serializers.ModelSerializer):
+    profile = ProfileUpdateSerializer()
+
     class Meta:
         model = User
-        fields = ('id', 'email')
+        fields = ('id', 'email', 'profile')
 
 
 class ProfileDetailSerializers(serializers.ModelSerializer):
@@ -103,16 +115,6 @@ class ProfileDetailSerializers(serializers.ModelSerializer):
     def get_profile_post_count(self, obj):
         count = Post.objects.filter(user=obj.user).count()
         return count
-
-
-class ProfileUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = (
-            'id',
-            'username',
-            'introduce'
-        )
 
 
 class UserProfileSerializers(serializers.ModelSerializer):

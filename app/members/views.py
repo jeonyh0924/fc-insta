@@ -3,7 +3,6 @@ import time
 from django.contrib.auth import get_user_model, authenticate
 # Create your views here.
 from django.db.models import Q
-from django.utils import timezone
 from rest_framework import viewsets, status, exceptions, mixins
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -23,33 +22,19 @@ from django.core.cache import cache
 User = get_user_model()
 
 
-# def retrieve_get_object(self):
-#     """
-#     Returns the object the view is displaying.
-#
-#     You may want to override this if you need to provide non-standard
-#     queryset lookups.  Eg if objects are referenced using multiple
-#     keyword arguments in the url conf.
-#     """
-#     queryset = self.filter_queryset(self.get_queryset()).cache()
-#
-#     # Perform the lookup filtering.
-#     lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-#
-#     assert lookup_url_kwarg in self.kwargs, (
-#             'Expected view %s to be called with a URL keyword argument '
-#             'named "%s". Fix your URL conf, or set the `.lookup_field` '
-#             'attribute on the view correctly.' %
-#             (self.__class__.__name__, lookup_url_kwarg)
-#     )
-#
-#     filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-#     obj = get_object_or_404(queryset, **filter_kwargs)
-#
-#     # May raise a permission denied
-#     self.check_object_permissions(self.request, obj)
-#
-#     return obj
+def retrieve_get_object(self):
+    queryset = self.filter_queryset(self.get_queryset()).prefetch_related('profile').cache(ops=['get'])
+    lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+    assert lookup_url_kwarg in self.kwargs, (
+            'Expected view %s to be called with a URL keyword argument '
+            'named "%s". Fix your URL conf, or set the `.lookup_field` '
+            'attribute on the view correctly.' %
+            (self.__class__.__name__, lookup_url_kwarg)
+    )
+    filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+    obj = get_object_or_404(queryset, **filter_kwargs)
+    self.check_object_permissions(self.request, obj)
+    return obj
 
 
 class UserModelViewAPI(viewsets.ModelViewSet):
@@ -57,7 +42,7 @@ class UserModelViewAPI(viewsets.ModelViewSet):
     serializer_class = UserSerializers
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related('profile')
+        queryset = super().get_queryset().prefetch_related('profile')
         username = self.request.query_params.get('username', None)
         if username is not None:
             queryset = User.objects.filter(profile__username__startswith=username).select_related('profile')
@@ -81,18 +66,10 @@ class UserModelViewAPI(viewsets.ModelViewSet):
             return UserSimpleSerializers
         return super().get_serializer_class()
 
-    # def list(self, request, *args, **kwargs):
-    #     queryset = self.filter_queryset(self.get_queryset()).cache()
-    #
-    #     page = self.paginate_queryset(queryset)
-    #     if page is not None:
-    #         serializer = self.get_serializer(page, many=True)
-    #         return self.get_paginated_response(serializer.data)
-    #
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(serializer.data)
-
     # def retrieve(self, request, *args, **kwargs):
+    #     """
+    #     django redis cache
+    #     """
     #     key = f"user{kwargs['pk']}"
     #     instance = cache.get(key)
     #     if not instance:
@@ -100,6 +77,15 @@ class UserModelViewAPI(viewsets.ModelViewSet):
     #         cache.set(key, instance, 60 * 60)
     #     serializer = self.get_serializer(instance)
     #     return Response(serializer.data)
+    def retrieve(self, request, *args, **kwargs):
+        """
+        django cacheops
+
+        이렇게 어렵게 하는 것 보다 get으로 설정하는게 더 나은 것 같다.
+        """
+        instance = retrieve_get_object(self)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'], url_path='change-password')
     def set_password(self, request, pk):
@@ -210,6 +196,20 @@ class UserModelViewAPI(viewsets.ModelViewSet):
             return Response({'message: has not Relation'}, status=status.HTTP_400_BAD_REQUEST)
         relation.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def yyy(self, a, b, c):
+        data = {
+            'a': a,
+            'b': b,
+            'c': c
+        }
+        return data
+
+    @action(detail=False)
+    def test(self, request):
+        print(self.yyy(10, 20))
+
+        return Response(status=status.HTTP_200_OK)
 
 
 class UserProfileView(mixins.UpdateModelMixin,

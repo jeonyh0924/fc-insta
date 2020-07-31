@@ -1,3 +1,5 @@
+from sys import path
+
 from django.conf.urls import url
 from django.urls import include
 from rest_framework_nested import routers
@@ -49,6 +51,11 @@ comment_router.register('reply', CommentAPIView)
 comment_like_router = routers.NestedSimpleRouter(post_like_router, 'comments', lookup='comment')
 comment_like_router.register('like', CommentLikeAPIView)
 
+
+# def trigger_error(request):
+#     division_by_zero = 1 / 0
+
+
 urlpatterns = [
     url('', include(router.urls)),
     url('', include(users_router.urls)),
@@ -56,4 +63,6 @@ urlpatterns = [
     url('', include(posts_router.urls)),
     url('', include(comment_like_router.urls)),
     url('', include(comment_router.urls)),
+    # # sentry
+    # url('sentry-debug/', trigger_error),
 ]

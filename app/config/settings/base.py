@@ -1,6 +1,9 @@
 import os
 import environ
 
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_DIR = os.path.dirname(os.path.dirname(BASE_DIR))
 env_file = ROOT_DIR + '/.env'
@@ -134,6 +137,7 @@ DEBUG_TOOLBAR_PANELS = [
 DEBUG_TOOLBAR_CONFIG = {
     'RESULTS_STORE_SIZE': 100,
 }
+# default django cache
 # CACHES = {
 #     'default': {
 #         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -149,17 +153,20 @@ CACHES = {
         }
     }
 }
-# CACHEOPS_REDIS = {
-#     'host': 'localhost',  # redis-server is on same machine
-#     'port': 6379,  # default redis port
-#     'db': 1,  # SELECT non-default redis database
-# }
 
 CACHEOPS = {
-    'members.User': {'ops': 'all', 'timeout': 60 * 60},
+    'members.User': {'ops': 'all', 'timeout': 60},
     'members.Profile': {'ops': 'all', 'timeout': 60},
-    'posts.Post': {'ops': 'all', 'timeout': 60},
-    'posts.Comment': {'ops': 'all', 'timeout': 60},
+    'posts.Post': {'ops': '()', 'timeout': 60},
+    'posts.Comment': {'ops': '()', 'timeout': 60},
     'posts.PostImage': {'ops': 'all', 'timeout': 60},
     'posts.Tag': {'ops': 'all', 'timeout': 60},
 }
+sentry_sdk.init(
+    dsn="https://100cf029a2bc407d9d0ade68aad0a203@o427990.ingest.sentry.io/5372863",
+    integrations=[DjangoIntegration()],
+
+    # If you wish to associate users to errors (assuming you are using
+    # django.contrib.auth) you may enable sending PII data.
+    send_default_pii=True
+)
