@@ -70,7 +70,6 @@ class PostTest(APITestCase):
 
         test_response = self.client.get(f'/users/{self.user.id}/posts')
 
-
     def test_retrieve(self):
         url = self.url + f'/{self.post.id}'
         response = self.client.get(url)

@@ -1,6 +1,9 @@
 import os
 import environ
 
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_DIR = os.path.dirname(os.path.dirname(BASE_DIR))
 env_file = ROOT_DIR + '/.env'
@@ -14,7 +17,17 @@ AUTH_USER_MODEL = 'members.User'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+
+# django email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'hungyb0924@gmail.com' # ex) bum752@gmail.com
+EMAIL_HOST_PASSWORD = os.environ['MAIL_PASS'] # ex) P@ssw0rd
+SERVER_EMAIL = 'hungyb0924@gmail.com' # ex) bum752@gmail.com
+DEFAULT_FROM_MAIL = 'hungyb0924' # ex) bum752
 
 # Application definition
 INSTALLED_APPS = [
@@ -34,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'mptt',
     'debug_toolbar',
+    'cacheops',
 
 ]
 
@@ -133,6 +147,7 @@ DEBUG_TOOLBAR_PANELS = [
 DEBUG_TOOLBAR_CONFIG = {
     'RESULTS_STORE_SIZE': 100,
 }
+# default django cache
 # CACHES = {
 #     'default': {
 #         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -148,3 +163,20 @@ CACHES = {
         }
     }
 }
+
+CACHEOPS = {
+    'members.User': {'ops': 'all', 'timeout': 60},
+    'members.Profile': {'ops': 'all', 'timeout': 60},
+    'posts.Post': {'ops': '()', 'timeout': 60},
+    'posts.Comment': {'ops': '()', 'timeout': 60},
+    'posts.PostImage': {'ops': 'all', 'timeout': 60},
+    'posts.Tag': {'ops': 'all', 'timeout': 60},
+}
+sentry_sdk.init(
+    dsn="https://100cf029a2bc407d9d0ade68aad0a203@o427990.ingest.sentry.io/5372863",
+    integrations=[DjangoIntegration()],
+
+    # If you wish to associate users to errors (assuming you are using
+    # django.contrib.auth) you may enable sending PII data.
+    send_default_pii=True
+)

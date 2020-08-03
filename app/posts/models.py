@@ -26,6 +26,7 @@ class Post(models.Model):
     tags = models.ManyToManyField(
         'Tag',
         null=True,
+        blank=True,
         related_query_name='posts',
     )
 

@@ -1,12 +1,18 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 from django.db import models
+from django.core.cache import cache
 
-# User = get_user_model()
 from django.db.models import F
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from rest_framework.generics import get_object_or_404
+
+from config.celery import create_users_send_mail_async
 
 
 class MyUserManager(BaseUserManager):
@@ -18,9 +24,7 @@ class MyUserManager(BaseUserManager):
         if not email:
             raise ValueError('Users must have an email address')
 
-        user = self.model(
-            email=self.normalize_email(email),
-        )
+        user = self.model(email=self.normalize_email(email), )
 
         user.set_password(password)
         user.save(using=self._db)
@@ -53,28 +57,31 @@ class User(AbstractBaseUser):
     relations_users = models.ManyToManyField(
         'self',
         related_name='+',
+        blank=True,
     )
 
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'
 
-    def __str__(self):
-        return f'{self.pk}'
-
     def save(self, *args, **kwargs):
         if not self.pk:
             super().save(*args, **kwargs)
             email, domain = self.email.split('@')
-            profile = Profile.objects.create(
+            Profile.objects.create(
                 user=self,
                 username=email
             )
         else:
+            cache.delete(f'user{self.pk}')
             super().save(*args, **kwargs)
         if self._password is not None:
             password_validation.password_changed(self._password, self)
             self._password = None
+
+    def delete(self, **kwargs):
+        cache.delete(f'user{self.pk}')
+        return super().delete()
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
@@ -98,7 +105,7 @@ class User(AbstractBaseUser):
         user = User.objects.filter(
             to_users_relation__from_user=self,
             to_users_relation__related_type='f'
-        )
+        ).select_related('profile')
         return user
 
     @property
@@ -107,7 +114,7 @@ class User(AbstractBaseUser):
         user = User.objects.filter(
             from_users_relation__to_user=self,
             from_users_relation__related_type='f'
-        )
+        ).select_related('profile')
         return user
 
     @property
@@ -125,8 +132,14 @@ class User(AbstractBaseUser):
         user = User.objects.filter(
             to_users_relation__from_user=self,
             to_users_relation__related_type='b'
-        )
+        ).select_related('profile')
         return user
+
+
+@receiver(post_save, sender=User)
+def create_user_send_to_mail(sender, created, instance, **kwargs):
+    if created:
+        create_users_send_mail_async.delay(instance.email)
 
 
 class Relations(models.Model):
@@ -221,6 +234,7 @@ class Profile(models.Model):
     )
     # 나를 팔로우 하고 있는 사람의 수
     follower_count = models.IntegerField(default=0)
+
     # 내가 팔로우를 하고 있는 사람의 수
     following_count = models.IntegerField(default=0)
 

@@ -1,7 +1,7 @@
 from django.db.models import F
 from rest_framework import serializers
 
-from members.serializers import UserSerializers, UserSimpleSerializers
+from members.serializers import UserSerializers, UserProfileSerializers, ProfileUpdateSerializer, UserSimpleSerializers
 from posts.models import Post, Comment, PostLike, CommentLike, PostImage, Tag
 
 
@@ -12,6 +12,7 @@ class RecursiveField(serializers.Serializer):
 
 
 class CommentSerializers(serializers.ModelSerializer):
+    user = UserProfileSerializers(read_only=True)
     child = RecursiveField(many=True, required=False)
 
     class Meta:
@@ -43,7 +44,7 @@ class PostSerializers(serializers.ModelSerializer):
     """
     images = PostImageSerializers(many=True, read_only=True, )
     comment = CommentSerializers(many=True, read_only=True, )
-    user = UserSimpleSerializers(read_only=True, )
+    profile = ProfileUpdateSerializer(source='user.profile', read_only=True)
     tags = TagSerializers(many=True, read_only=True, )
     tags_list = serializers.ListField(
         child=serializers.CharField(max_length=20), write_only=True,
@@ -51,7 +52,7 @@ class PostSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('id', 'title', 'content', 'user', 'images', 'comment', 'like_count', 'tags', 'tags_list')
+        fields = ('id', 'title', 'content', 'profile', 'images', 'comment', 'like_count', 'tags', 'tags_list', )
         read_only_fields = ('like_count',)
 
     def create(self, validated_data):
@@ -69,9 +70,11 @@ class PostSerializers(serializers.ModelSerializer):
 
 
 class PostUpdateSerializers(serializers.ModelSerializer):
+    tags = TagSerializers(many=True, read_only=True, )
+
     class Meta:
         model = Post
-        fields = ('id', 'title', 'content')
+        fields = ('id', 'title', 'content', 'tags',)
 
 
 class PostProfileSerializers(serializers.ModelSerializer):

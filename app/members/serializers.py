@@ -1,3 +1,4 @@
+from cacheops import cached
 from django.contrib.auth import get_user_model
 from rest_framework import serializers, exceptions
 from rest_framework.exceptions import ValidationError
@@ -30,7 +31,7 @@ class ProfileSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = ('id', 'username', 'introduce', 'follower_count', 'following_count', 'relation',)
 
     def get_relation(self, obj):
         try:
@@ -84,10 +85,22 @@ class RelationSerializers(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = (
+            'id',
+            'username',
+            'introduce'
+        )
+
+
 class UserSimpleSerializers(serializers.ModelSerializer):
+    profile = ProfileUpdateSerializer()
+
     class Meta:
         model = User
-        fields = ('id', 'email')
+        fields = ('id', 'email', 'profile')
 
 
 class ProfileDetailSerializers(serializers.ModelSerializer):
@@ -104,14 +117,12 @@ class ProfileDetailSerializers(serializers.ModelSerializer):
         return count
 
 
-class ProfileUpdateSerializer(serializers.ModelSerializer):
+class UserProfileSerializers(serializers.ModelSerializer):
+    profile = ProfileUpdateSerializer()
+
     class Meta:
-        model = Profile
-        fields = (
-            'id',
-            'username',
-            'introduce'
-        )
+        model = User
+        fields = ('id', 'email', 'profile')
 
 
 class ChangePassSerializers(serializers.Serializer):

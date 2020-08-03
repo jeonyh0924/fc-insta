@@ -1,21 +1,21 @@
+from sys import path
+
 from django.conf.urls import url
 from django.urls import include
 from rest_framework_nested import routers
 
 from members.views import UserModelViewAPI, UserProfileView, RelationAPIView, RecentlyUserAPIView
-from optima.views import ChildViewSet
 from posts.views import PostsAPIView, CommentAPIView, PostLikeAPIView, CommentLikeAPIView, TagAPIView
 from stories.views import StoryAPIView
 
-router = routers.SimpleRouter(trailing_slash=True)
+router = routers.SimpleRouter(trailing_slash=False)
 
 router.register('users', UserModelViewAPI)
 router.register('posts', PostsAPIView)
 router.register('comments', CommentAPIView)
 router.register('relation', RelationAPIView)
 router.register('story', StoryAPIView)
-router.register('tag', TagAPIView)
-
+router.register('tags', TagAPIView)
 
 # /users/
 users_router = routers.NestedSimpleRouter(router, 'users', lookup='user')
@@ -51,6 +51,11 @@ comment_router.register('reply', CommentAPIView)
 comment_like_router = routers.NestedSimpleRouter(post_like_router, 'comments', lookup='comment')
 comment_like_router.register('like', CommentLikeAPIView)
 
+
+# def trigger_error(request):
+#     division_by_zero = 1 / 0
+
+
 urlpatterns = [
     url('', include(router.urls)),
     url('', include(users_router.urls)),
@@ -58,4 +63,6 @@ urlpatterns = [
     url('', include(posts_router.urls)),
     url('', include(comment_like_router.urls)),
     url('', include(comment_router.urls)),
+    # # sentry
+    # url('sentry-debug/', trigger_error),
 ]
