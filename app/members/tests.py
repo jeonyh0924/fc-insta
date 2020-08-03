@@ -12,11 +12,11 @@ User = get_user_model()
 class UserTest(APITestCase):
     url = '/users'
 
-    def setUp(self) -> None:
-        self.user = User(email='test@email.com', password='1111')
-        self.user.set_password(self.user.password)
-        self.user.save()
-        self.user2 = User.objects.create_user(email='test2@email', password='1111')
+    # def setUp(self) -> None:
+        # self.user = User(email='jeonyh0924@naver.com', password='1111')
+        # self.user.set_password(self.user.password)
+        # self.user.save()
+        # self.user2 = User.objects.create_user(email='test2@email', password='1111')
 
     def test_list(self):
         response = self.client.get(self.url)
@@ -24,11 +24,12 @@ class UserTest(APITestCase):
 
     def test_create(self):
         data = {
-            'email': 'create@user.com',
+            'email': 'jeonyh0924@naver.com',
             'password': '1111',
             'username': 'testUser'
         }
         response = self.client.post(self.url, data=data)
+        self.fail()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = response.data

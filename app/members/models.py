@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
@@ -5,9 +7,12 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.core.cache import cache
 
-# User = get_user_model()
 from django.db.models import F
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from rest_framework.generics import get_object_or_404
+
+from config.celery import create_users_send_mail_async
 
 
 class MyUserManager(BaseUserManager):
@@ -131,6 +136,12 @@ class User(AbstractBaseUser):
         return user
 
 
+@receiver(post_save, sender=User)
+def create_user_send_to_mail(sender, created, instance, **kwargs):
+    if created:
+        create_users_send_mail_async.delay(instance.email)
+
+
 class Relations(models.Model):
     CHOICE_RELATIONS_TYPE = (
         ('f', 'follow'),
@@ -223,6 +234,7 @@ class Profile(models.Model):
     )
     # 나를 팔로우 하고 있는 사람의 수
     follower_count = models.IntegerField(default=0)
+
     # 내가 팔로우를 하고 있는 사람의 수
     following_count = models.IntegerField(default=0)
 

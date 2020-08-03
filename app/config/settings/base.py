@@ -17,7 +17,17 @@ AUTH_USER_MODEL = 'members.User'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+
+# django email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'hungyb0924@gmail.com' # ex) bum752@gmail.com
+EMAIL_HOST_PASSWORD = os.environ['MAIL_PASS'] # ex) P@ssw0rd
+SERVER_EMAIL = 'hungyb0924@gmail.com' # ex) bum752@gmail.com
+DEFAULT_FROM_MAIL = 'hungyb0924' # ex) bum752
 
 # Application definition
 INSTALLED_APPS = [

@@ -150,7 +150,9 @@ get, set과 달리 자신의 모델 필드 값이 변경이 될 경우에 해당
 [출처](https://americanopeople.tistory.com/318)
 
 ##### cache ops 내용 정리 필요
-- 잘 걸리는지 확인을 해야 한다. ops의 장점은 손 쉽게 캐시를 해준다는 것이 있는데, 확인을 제대로 하지 않고 서비스를 배포 하게 되고 캐시가 동작하지 않는다면 퍼포먼스적으로 손해가 크다.
+- 잘 걸리는지 확인을 해야 한다. ops의 장점은 손 쉽게 캐시를 해준다는 것이 있는데, 확인을 제대로 하지 않고 서비스를 배포 하게 되고 캐시가 동작하지 않는다면 퍼포먼스적으로
+
+ 손해가 크다.
 
 - 캐시를 언제 하느냐: 특정 모델이 헤비한경우
 - 캐시를 하는 이유 : 빠르게 응답을 하기 위해, 디비에 연산을 줄이기 위해
@@ -203,3 +205,13 @@ get, set과 달리 자신의 모델 필드 값이 변경이 될 경우에 해당
 ##### Async Worker
 - 비 동기 task Queue
 - networkio가 발생되지 않는 선에서 
+
+#### [celery](https://docs.celeryproject.org/en/stable/django/first-steps-with-django.html)
+
+#### Django lock
+[블로그 글1](https://medium.com/@chrisjune_13837/django-row-lock-%EB%8F%99%EC%9E%91%EB%B0%A9%EC%8B%9D-a2e05bb0eb90)
+
+
+
+#### django smtp
+[블로그 글1](https://bum752.github.io/posts/django-mail/)
