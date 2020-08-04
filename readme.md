@@ -168,7 +168,7 @@ get, set과 달리 자신의 모델 필드 값이 변경이 될 경우에 해당
 
 ##### 망 중립성 [ 재미로 찾아 보기 ]
 - 네트워크의 60% 가 넷플릭스가 가지고 있다. 
-- kt와 페이스북 전쟁 (망 중립성)
+- kt와 페이스북 소송 (망 중립성)
 
 
 ##### in memorystorage
@@ -206,12 +206,33 @@ get, set과 달리 자신의 모델 필드 값이 변경이 될 경우에 해당
 - 비 동기 task Queue
 - networkio가 발생되지 않는 선에서 
 
-#### [celery](https://docs.celeryproject.org/en/stable/django/first-steps-with-django.html)
+### [celery](https://docs.celeryproject.org/en/stable/django/first-steps-with-django.html)
 
 #### Django lock
-[블로그 글1](https://medium.com/@chrisjune_13837/django-row-lock-%EB%8F%99%EC%9E%91%EB%B0%A9%EC%8B%9D-a2e05bb0eb90)
+- [블로그 글1](https://medium.com/@chrisjune_13837/django-row-lock-%EB%8F%99%EC%9E%91%EB%B0%A9%EC%8B%9D-a2e05bb0eb90)
 
 
 
 #### django smtp
-[블로그 글1](https://bum752.github.io/posts/django-mail/)
+- [블로그 글1](https://bum752.github.io/posts/django-mail/)
+
+#### [Django Signal](https://docs.djangoproject.com/en/3.0/topics/signals/)
+- [블로그 글1](https://kimdoky.github.io/django/2018/09/06/django-taskbuster-9/)
+
+- [블로그글 2](https://chohyeonkeun.github.io/2019/05/11/190511-django-Signal/)
+
+- [블로그글 3](https://jisunglab.tistory.com/178)
+
+- [블로그글 4](https://dgkim5360.tistory.com/entry/django-signal-example)
+
+- 장고 시그널은 특정 이벤트가 발생할 때 응용 프로그램에 알릴 수 있는 전략입니다. 
+- 시그널 시스템에는 senders와 receivers 두 가지 핵심 요소가 있습니다. sender는 신호를 전달하는 책임자, receiver는 신호를 수신 한 다음 무언가를 수행하는 객체 입니다. 
+- Receivers 는 신호를 수신하는 함수 또는 인스턴스 메서드이어야 한다.
+- Senders는 sender로 부터 이벤트를 받기 위해서는 python 개체이거나 None 이어야 한다. 
+- sender : 사용자 모델 클래스
+- created : 새로운 User가 생성되었는지 나타내는 bool
+- instance : 저장 중인 사용자 인스턴스
+	- pre_save : 저장 전, 실행
+	- post_save : 저장 후, 실행
+	- pre_delete : 삭제 전, 실행
+	- post_save : 삭제 후, 실행

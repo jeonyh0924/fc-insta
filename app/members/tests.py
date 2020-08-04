@@ -29,7 +29,6 @@ class UserTest(APITestCase):
             'username': 'testUser'
         }
         response = self.client.post(self.url, data=data)
-        self.fail()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = response.data
