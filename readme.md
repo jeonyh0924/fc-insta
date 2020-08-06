@@ -286,8 +286,10 @@ class Account(models.Model):
 #### django smtp
 - [블로그 글1](https://bum752.github.io/posts/django-mail/)
 
+
 #### [Django Signal 공식문서](https://docs.djangoproject.com/en/3.0/topics/signals/)
 -  **bulk를 사용하는 경우에는 시그널이 오지 않는다.**
+
 - [블로그 글1](https://kimdoky.github.io/django/2018/09/06/django-taskbuster-9/)
 
 - [블로그글 2](https://chohyeonkeun.github.io/2019/05/11/190511-django-Signal/)
@@ -432,3 +434,4 @@ for hit in s:
 # 또는 localhost:9200/cars
 # 해당 인덱스 이름 
 ```
+

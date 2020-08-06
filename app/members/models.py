@@ -6,10 +6,10 @@ from django.db import models
 from django.core.cache import cache
 
 from django.db.models import F
-from django.db.models.signals import post_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
+from django_lifecycle import LifecycleModel, BEFORE_SAVE, hook
 from rest_framework.generics import get_object_or_404
-
 from config.celery import create_users_send_mail_async
 
 
@@ -44,7 +44,7 @@ class MyUserManager(BaseUserManager):
 
 
 # Create your models here.
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, LifecycleModel):
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
@@ -133,11 +133,10 @@ class User(AbstractBaseUser):
         ).select_related('profile')
         return user
 
-
-@receiver(post_save, sender=User)
-def create_user_send_to_mail(sender, created, instance, **kwargs):
-    if created:
-        create_users_send_mail_async.delay(instance.email)
+    # django lifecycle // user set password
+    @hook(BEFORE_SAVE)
+    def user_set_password(self):
+        self.set_password(self.password)
 
 
 class Relations(models.Model):
@@ -218,7 +217,7 @@ class Relations(models.Model):
         return super().delete(using=None, keep_parents=False)
 
 
-class Profile(models.Model):
+class Profile(LifecycleModel):
     user = models.OneToOneField(
         'User',
         on_delete=models.CASCADE,

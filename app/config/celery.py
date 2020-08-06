@@ -25,4 +25,4 @@ def create_users_send_mail_async(mail, **kwargs):
     subject = 'Django를 통해 발송한 메일'
     message = 'Django 를 통해 발송한 메일 입니다.'
     email = EmailMessage(subject, message, to=[email_var])
-    email.send()
+    # email.send()
