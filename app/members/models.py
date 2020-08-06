@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from django.contrib.auth import get_user_model, password_validation
+from django.contrib.auth import password_validation
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
