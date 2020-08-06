@@ -100,6 +100,9 @@ Soft Delete - 논리적으로 삭제한다.
 [링크4](https://www.whatap.io/ko/blog/6/)
 
 [select, prefetch](https://medium.com/chrisjune-13837/%EB%8B%B9%EC%8B%A0%EC%9D%B4-%EB%AA%B0%EB%9E%90%EB%8D%98-django-prefetch-5d7dd0bd7e15)
+
+[select, prefetch #2](https://velog.io/@rosewwross/Django-selectrelated-%EC%99%80-prefetchedrelated%EB%A5%BC-%EC%82%AC%EC%9A%A9%ED%95%9C-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%B0%B8%EC%A1%B0)
+
 #### Optimizing - 내용 정리 
 대부분의 최적화 내용은 Disk IO, network IO 최적화를 할 것 이다. DB 최적화만 하여도 기능적인 최적화가 마무리 될 것이다. 
 DB에 접근하면 Dist와 네트워크에 접근을 한다. 
@@ -210,13 +213,83 @@ get, set과 달리 자신의 모델 필드 값이 변경이 될 경우에 해당
 
 #### Django lock
 - [블로그 글1](https://medium.com/@chrisjune_13837/django-row-lock-%EB%8F%99%EC%9E%91%EB%B0%A9%EC%8B%9D-a2e05bb0eb90)
+- [블로그 글2](https://fabl1106.github.io/django/2019/08/23/Django-33.-Django-Lock%EC%97%90-%EA%B4%80%ED%95%B4%EC%84%9C.html)
+
+```python
+# settings.py
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': 'localhost:6379',
+    },
+}
+
+# models.py
+from datetime import datetime
+from time import sleep
+
+from django.core.cache import cache
+from django.db import models
 
 
+class Account(models.Model):
+    balance = models.PositiveIntegerField(default=0)
+
+    def log(self, *args):
+        print(datetime.now(), *args)
+
+    def update_balance(self, val):
+        # 해당 함수 시작
+        self.log('Update Balance:', val)
+        # 캐시 키 값 초기화
+        key = f'lock:account:{self.id}'
+        # ttl 해당 캐시를 얼마나 지속할 지에 대하여
+        ttl = 60
+
+        for i in range(5):
+            self.log('실행 ')
+            lock = cache.get(key)
+            if not lock:
+                # 캐시가 없다면 반복문을 끝낸다.
+                self.log('락이 없다.')
+                break
+            # 캐시가 있다면 대기
+            self.log('Lock Exists and wait')
+            # lock 이 존재하므로 대기
+            sleep(2)
+
+        else:
+            # 브레이크가 걸리지 않았을 경우 표시.
+            self.log('lock acquire failed')
+            return False
+
+        # value 값이 중요하지는 않고, 키가 존재하는 것이 중요!
+
+        # 반복문이 끝났다면 ( 반복문이 끝난 경우는 캐시가 없는 경우 )
+        cache.set(key, True, ttl)
+        self.log('Lock Acquired')
+
+        self.log('start logic')
+        # 지금부터 해당 시간동안 락이 걸려 접근하는 동작에 대해서 접근을 막는다.
+
+        # 어떤 로직이 돌아가는 시간.
+        sleep(9)
+
+        self.log('Finish logic:', val)
+        cache.delete(key)
+        self.log('Lock Released')
+
+
+
+```
 
 #### django smtp
 - [블로그 글1](https://bum752.github.io/posts/django-mail/)
 
-#### [Django Signal](https://docs.djangoproject.com/en/3.0/topics/signals/)
+
+#### [Django Signal 공식문서](https://docs.djangoproject.com/en/3.0/topics/signals/)
+-  **bulk를 사용하는 경우에는 시그널이 오지 않는다.**
+
 - [블로그 글1](https://kimdoky.github.io/django/2018/09/06/django-taskbuster-9/)
 
 - [블로그글 2](https://chohyeonkeun.github.io/2019/05/11/190511-django-Signal/)
@@ -224,6 +297,7 @@ get, set과 달리 자신의 모델 필드 값이 변경이 될 경우에 해당
 - [블로그글 3](https://jisunglab.tistory.com/178)
 
 - [블로그글 4](https://dgkim5360.tistory.com/entry/django-signal-example)
+- [Django lifeCycle 라이브러리](https://github.com/rsinger86/django-lifecycle)
 
 - 장고 시그널은 특정 이벤트가 발생할 때 응용 프로그램에 알릴 수 있는 전략입니다. 
 - 시그널 시스템에는 senders와 receivers 두 가지 핵심 요소가 있습니다. sender는 신호를 전달하는 책임자, receiver는 신호를 수신 한 다음 무언가를 수행하는 객체 입니다. 
@@ -236,3 +310,128 @@ get, set과 달리 자신의 모델 필드 값이 변경이 될 경우에 해당
 	- post_save : 저장 후, 실행
 	- pre_delete : 삭제 전, 실행
 	- post_save : 삭제 후, 실행
+
+
+
+#### Locust
+- Python으로 테스트 코드를 작성한다.
+- 빠르게 테스트 환경을 구축하고 실행해볼 수 있다.
+
+- [블로그 글1](https://medium.com/@jspark141515/locust%EB%A1%9C-%EC%84%9C%EB%B2%84-%EC%84%B1%EB%8A%A5-%ED%85%8C%EC%8A%A4%ED%8A%B8%ED%95%98%EA%B8%B0-7490d882015)
+
+
+
+
+#### ElasticSearch
+
+- Full Text 검색 지원 
+	- 엄청나게 빠르다 이유는 reverse index를 쓰기 때문에
+	- 자연어 검색이 가능하다. 
+	- **데이터베이스는 B+ tree의 자료구조를 가지고 있다.** 
+		- 정렬이 되어 있는 구조이다.
+
+	- objects.filter에서 contain를 사용을 한다는 것은 엄청나게 느리다 n*n 서비스가 엄청 작을경우에만 사용해야 한다.
+
+
+- ELK 
+	- ES (DB 같은) : 1.로그 저장용 , 2.검색 사용에  많이 사용된다. 
+	- Logstash
+	- kibana ( ES를 보는 툴 djagno admin같은 )
+
+	
+
+#### [Django 검색](https://medium.com/@whj2013123218/%EC%9E%A5%EA%B3%A0-django-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%EC%97%90-%EA%B2%80%EC%83%89%EA%B8%B0%EB%8A%A5-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0-%EA%B8%B0%EB%B3%B8-%EA%B2%80%EC%83%89-%EC%9B%90%EB%A6%AC%EC%97%90-%EA%B4%80%ED%95%98%EC%97%AC-632516e6a14f)
+
+
+##### [django elasticsearch dsl](https://django-elasticsearch-dsl.readthedocs.io/en/latest/quickstart.html)
+```python
+# settings.py
+ELASTICSEARCH_DSL={
+    'default': {
+        'hosts': 'localhost:9200'
+    },
+}
+
+# models.py
+class Car(models.Model):
+    name = models.CharField()
+    color = models.CharField()
+    description = models.TextField()
+    type = models.IntegerField(choices=[
+        (1, "Sedan"),
+        (2, "Truck"),
+        (4, "SUV"),
+    ])
+    
+# documents.py
+from django_elasticsearch_dsl import Document
+from django_elasticsearch_dsl.registries import registry
+from .models import Car
+
+
+@registry.register_document
+class CarDocument(Document):
+    class Index:
+        # Name of the Elasticsearch index
+        name = 'cars'
+        # See Elasticsearch Indices API reference for available settings
+        settings = {'number_of_shards': 1,
+                    'number_of_replicas': 0}
+
+    class Django:
+        model = Car # The model associated with this Document
+
+        # The fields of the model you want to be indexed in Elasticsearch
+        fields = [
+            'name',
+            'color',
+            'description',
+            'type',
+        ]
+
+        # Ignore auto updating of Elasticsearch when a model is saved
+        # or deleted:
+        # ignore_signals = True
+
+        # Don't perform an index refresh after every update (overrides global setting):
+        # auto_refresh = False
+
+        # Paginate the django queryset used to populate the index with the specified size
+        # (by default it uses the database driver's default setting)
+        # queryset_pagination = 5000
+
+```
+
+```shell
+# 선웅이 형님 도움 -- 해당 링크 https://soyoung-new-challenge.tistory.com/110
+$ docker pull docker.elastic.co/elasticsearch/elasticsearch:7.7.1
+$ docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.7.1
+
+```
+
+```python
+$ ./manage.py search_index --rebuild
+
+car = Car(
+    name="Car one",
+    color="red",
+    type=1,
+    description="A beautiful car"
+)
+car.save()
+
+s = CarDocument.search().filter("term", color="red")
+
+# or
+
+s = CarDocument.search().query("match", description="beautiful")
+
+for hit in s:
+    print(
+        "Car name : {}, description {}".format(hit.name, hit.description)
+    )
+    
+# 또는 localhost:9200/cars
+# 해당 인덱스 이름 
+```
+
