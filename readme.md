@@ -27,15 +27,23 @@ DB_PORT=5432
 
 ### 기능 구현 내용
 
-- 유저 CRUD ( ModelViewSet - CRUD, login, logout, follow, follower, block, create_delete_Relation)
+- 유저 CRUD ( ModelViewSet - CRUD, login, logout, follow, follower, block, set_password, posts i've written) & testcode 
 
-- 유저 Model (AbstractBaseUser, BaseUserManager, property- follow, follower, block)
+- 유저 Model (AbstractBaseUser, BaseUserManager)
 
-- 유저 OTO Relation Create
+- 유저 Profile ( create, update, || create to Profile when create user) model save, django signal, django lifecycle
 
-- 유저 testcode ( CRUD, login, logout, profile CU)
+- 최근 검색한 유저 
+
+- 게시글 CRUD ( ModelViewSet - CRUD, page, 내가 작성한 게시글, 태그, 다중 이미지, 게시글 좋아요, 댓글(MTPP))
+
+- 인스타 스토리 ( CRUD )
 
 - Nested Router [라이브러리 문서](https://github.com/alanjds/drf-nested-routers), [참고 링크](https://lunacircle4.github.io/django/2019/09/05/Django-router/)
+
+---------------------
+##### 만들면서 이 앱만의 특이점
+- 스토리를 보여주어야 하는 것에 있어서 팔로우 한 유저에 한하여 24시간 내에 작성 된 스토리를 보여주어야 하는 것. 디테일 페이지에 접근을 하게 되었을 때 유저와 스토리의 릴레이션을 생성하여 스토리를 보았는지, 보지 않았는지를 체크함.
 
 ### 깃 전략 세우기 [링크](https://blog.naver.com/PostView.nhn?blogId=tmondev&logNo=220763012361&redirect=Dlog)
 
@@ -286,10 +294,8 @@ class Account(models.Model):
 #### django smtp
 - [블로그 글1](https://bum752.github.io/posts/django-mail/)
 
-
 #### [Django Signal 공식문서](https://docs.djangoproject.com/en/3.0/topics/signals/)
 -  **bulk를 사용하는 경우에는 시그널이 오지 않는다.**
-
 - [블로그 글1](https://kimdoky.github.io/django/2018/09/06/django-taskbuster-9/)
 
 - [블로그글 2](https://chohyeonkeun.github.io/2019/05/11/190511-django-Signal/)
@@ -434,4 +440,3 @@ for hit in s:
 # 또는 localhost:9200/cars
 # 해당 인덱스 이름 
 ```
-

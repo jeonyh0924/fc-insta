@@ -23,6 +23,9 @@ User = get_user_model()
 
 
 def retrieve_get_object(self):
+    """
+    캐시를 사용하여 유저 쿼리셋을 가져 올 시 profile에 대한 정보도 함께 가져온다.
+    """
     queryset = self.filter_queryset(self.get_queryset()).prefetch_related('profile').cache(ops=['get'])
     lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
     assert lookup_url_kwarg in self.kwargs, (
@@ -196,20 +199,6 @@ class UserModelViewAPI(viewsets.ModelViewSet):
             return Response({'message: has not Relation'}, status=status.HTTP_400_BAD_REQUEST)
         relation.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def yyy(self, a, b, c):
-        data = {
-            'a': a,
-            'b': b,
-            'c': c
-        }
-        return data
-
-    @action(detail=False)
-    def test(self, request):
-        print(self.yyy(10, 20))
-
-        return Response(status=status.HTTP_200_OK)
 
 
 class UserProfileView(mixins.UpdateModelMixin,
