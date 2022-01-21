@@ -23,7 +23,7 @@ djangorestframework-recursive==0.1.2
 drf-nested-routers==0.91
 funcy==1.14
 future==0.18.2
-ipython==7.16.1
+ipython==7.16.3
 ipython-genutils==0.2.0
 jedi==0.17.1
 kombu==4.6.11
